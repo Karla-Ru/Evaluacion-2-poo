@@ -32,5 +32,28 @@ empleado1.actualizar_salario(950000)
 
 empleado1.cambiar_estado(False)
 
+#EJECUCIÓN DE DEPARTAMENTO
+
+from proyecto.model.departamento import (
+    Departamento,
+    validar_tabla_departamento,
+    insertar_datos_departamento
+)
+
+validar_tabla_departamento()
+
+#CREAR UN DEPARTAMENTO
+departamento = Departamento(
+    nombre="Desarrollo Tecnológico",
+    descripcion="Departamento encargado del desarrollo de soluciones tecnológicas.",
+    id_gerente=1
+)
+
+#INSERTAR EN ORACLE
+insertar_datos_departamento(departamento)
+
+#MOSTRAR INFO
+print(departamento.mostrar_datos())
+
 
 
