@@ -7,7 +7,12 @@ from proyecto.model.empleado import (
     insertar_datos_empleado
 )
 
-validar_tabla_empleado()
+from proyecto.model.proyecto import (Proyecto, validar_tabla_proyecto)
+
+
+def main():
+    validar_tabla_empleado()
+    validar_tabla_proyecto()
 
 # Coso para crear empleado
 empleado1 = Empleado(
@@ -26,3 +31,6 @@ insertar_datos_empleado(empleado1)
 empleado1.actualizar_salario(950000) 
 
 empleado1.cambiar_estado(False)
+
+
+
