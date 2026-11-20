@@ -253,9 +253,9 @@ def listarProyectos() -> list:
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT id_proyecto, nombre, descripcion, fecha_inicio, fecha_termino, estado
-                FROM proyectos IRDER Y id_proyecto
+                FROM proyectos ORDER BY id_proyecto
             """ )
-            for fila in cursor.fetcall():
+            for fila in cursor.fetchall():
                 proyectos.append(Proyecto(
                     idProyecto=fila[0], nombre=fila[1], descripcion=fila[2],
                         fechaInicio=fila[3], fechaTermino=fila[4], estado=fila[5],
