@@ -1,6 +1,4 @@
-from config.app_config import conectar_db, oracledb
-
-#Coso de departamento
+from proyecto.config.app_config import conectar_db, oracledb
 
 def validar_tabla_departamento():
 

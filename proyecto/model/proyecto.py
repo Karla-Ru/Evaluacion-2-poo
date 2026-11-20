@@ -93,5 +93,5 @@ def cambiarEstado(self, nuevoEstado: str) -> bool:
 def __str__(self) -> str:
     return (f"Proyecto [{self.idProyecto}] {self.nombre} | {self.estado} | "
             f"{self.__fechaInicio} -> {self.__fechaTermino} | "
-            f"Empleados asignados: {len(slef.__empleados)}")
+            f"Empleados asignados: {len(self.__empleados)}")
 
