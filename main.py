@@ -54,5 +54,34 @@ insertar_datos_departamento(departamento)
 #MOSTRAR INFO
 print(departamento.mostrar_datos())
 
+# CREAR UN PROYECTO
+proyecto1 = Proyecto (
+    nombre="Sitio Web Corporativo",
+    descripcion="Desarrollo del nuevo sitio web de la empresa",
+    fechaInicio=date(2026, 1, 10),
+    fechaTermino=date(2026, 6, 30),
+)
+proyecto1.crearProyecto()
+
+# CAMBIAR EDSTADO Y MODIFICAR DATOS
+proyecto1.cambiarEstado("En curso")
+proyecto1.modificarProyecto(nombre="Sitio Web 2.0", fechaTermino=date(2026, 8, 31))
+
+# ASIGNAR EMPLEADO
+proyecto1.asignarEmpleado(1)
+proyecto1.desasignarEmpleado(1)
+
+# MOSTRAR LOS PROYECTOS GUARDADOS
+print("\n--- Proyectos en la base de datos ---")
+for p in Proyecto.listarProyectos():
+    print(p)
+
+# ELIMINAR PROYECTO
+proyecto1.eliminarProyecto()
+
+if __name__ == "__main__":
+    main()
+
+
 
 
