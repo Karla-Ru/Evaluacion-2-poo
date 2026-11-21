@@ -93,3 +93,72 @@ from proyecto.model.usuario_empleado import (
     UsuarioEmpleado,
     insertar_usuario_empleado
 )
+
+#EJECUCIÓN ADMINISTRADOR
+
+from proyecto.model.administrador import Administrador, insertar_administrador
+
+administrador = Administrador(
+    nombre_usuario="admin",
+    clave="Admin12345"
+)
+
+insertar_administrador(administrador)
+
+print(administrador.mostrar_datos())
+
+print(administrador.mostrar_permisos()) #CONSULTAR PERMISOS
+
+administrador.gestionar_empleados() #PROBAR FUNCIONALIDADES
+administrador.gestionar_proyectos()
+administrador.consultar_informes()
+
+#EJECUCIÓN ROL
+
+from proyecto.model.rol import (
+    Rol,
+    Permiso,
+    validar_tabla_rol,
+    validar_tabla_permiso,
+    validar_tabla_rol_permiso,
+    insertar_rol,
+    insertar_permiso,
+    asignar_permiso_rol
+)
+
+#EJECUCIÓN ROLES Y PERMISOS
+
+#CREAR TABLAS
+validar_tabla_rol()
+validar_tabla_permiso()
+validar_tabla_rol_permiso()
+
+
+#CREAR ROL ADMINISTRADOR
+rol_admin = Rol(
+    nombre="ADMINISTRADOR",
+    descripcion="Acceso a las funciones administrativas del sistema."
+)
+
+insertar_rol(rol_admin)
+
+
+#CREAR PERMISOS
+permiso_empleados = Permiso(
+    nombre="GESTIONAR_EMPLEADOS",
+    descripcion="Permite registrar, modificar y eliminar empleados."
+)
+
+permiso_proyectos = Permiso(
+    nombre="GESTIONAR_PROYECTOS",
+    descripcion="Permite administrar los proyectos."
+)
+
+permiso_informes = Permiso(
+    nombre="CONSULTAR_INFORMES",
+    descripcion="Permite consultar los informes del sistema."
+)
+
+insertar_permiso(permiso_empleados)
+insertar_permiso(permiso_proyectos)
+insertar_permiso(permiso_informes)
