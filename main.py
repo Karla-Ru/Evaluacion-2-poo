@@ -54,5 +54,13 @@ insertar_datos_departamento(departamento)
 #MOSTRAR INFO
 print(departamento.mostrar_datos())
 
+#LO DE USUARIOS
+from proyecto.model.usuario_sistema import (
+    validar_tabla_usuario_sistema,
+    autenticar_usuario
+)
 
-
+from proyecto.model.usuario_empleado import (
+    UsuarioEmpleado,
+    insertar_usuario_empleado
+)
