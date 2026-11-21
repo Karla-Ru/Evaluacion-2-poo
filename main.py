@@ -83,5 +83,13 @@ if __name__ == "__main__":
     main()
 
 
+#LO DE USUARIOS
+from proyecto.model.usuario_sistema import (
+    validar_tabla_usuario_sistema,
+    autenticar_usuario
+)
 
-
+from proyecto.model.usuario_empleado import (
+    UsuarioEmpleado,
+    insertar_usuario_empleado
+)
