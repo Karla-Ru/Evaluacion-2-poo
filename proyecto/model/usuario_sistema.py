@@ -2,10 +2,7 @@ from abc import ABC, abstractmethod
 from config.app_config import conectar_db, oracledb
 import bcrypt
 
-
-# ==========================================
-# CREAR TABLA USUARIOS DEL SISTEMA
-# ==========================================
+#CREAR TABLA USUARIOS DEL SISTEMA
 
 def validar_tabla_usuario_sistema():
 
@@ -55,11 +52,7 @@ def validar_tabla_usuario_sistema():
         cursor.close()
         conn.close()
 
-
-# ==========================================
-# CLASE PADRE USUARIO SISTEMA
-# ==========================================
-
+#CLASE PADRE USUARIO SISTEMA
 class UsuarioSistema(ABC):
 
     def __init__(
@@ -71,7 +64,7 @@ class UsuarioSistema(ABC):
         self.id_usuario = None
         self.nombre_usuario = nombre_usuario
 
-        # La contraseña se almacena como hash, no como texto plano.
+        #LA CONTRASEÑA SE ALMACENA COMO HASH (NO COMO TEXTO PLANO)
         self.clave_hash = bcrypt.hashpw(
             clave.encode("utf-8"),
             bcrypt.gensalt()
@@ -99,10 +92,7 @@ class UsuarioSistema(ABC):
             f"Estado: {'Activo' if self.activo else 'Inactivo'}"
         )
 
-
-# ==========================================
-# AUTENTICAR USUARIO
-# ==========================================
+#AUTENTICAR USUARIO
 
 def autenticar_usuario(nombre_usuario: str, clave: str):
 
@@ -112,7 +102,7 @@ def autenticar_usuario(nombre_usuario: str, clave: str):
         FROM usuarios_sistema
         WHERE nombre_usuario = :1
     """
-
+    
     conn = conectar_db()
     cursor = conn.cursor()
 

@@ -1,10 +1,7 @@
 from usuario_sistema import UsuarioSistema
 from config.app_config import conectar_db, oracledb
 
-
-# ==========================================
-# INSERTAR USUARIO EMPLEADO
-# ==========================================
+#INSERTAR USUARIO EMPLEADO
 
 def insertar_usuario_empleado(usuario):
 
@@ -44,11 +41,7 @@ def insertar_usuario_empleado(usuario):
         cursor.close()
         conn.close()
 
-
-# ==========================================
-# CLASE USUARIO EMPLEADO
-# ==========================================
-
+#CLASE USUARIO EMPLEADO
 class UsuarioEmpleado(UsuarioSistema):
 
     def __init__(
