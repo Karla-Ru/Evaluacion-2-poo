@@ -9,7 +9,7 @@ def validar_tabla_proyecto():
             id_proyecto NUMBER GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
             nombre VARCHAR2(100) NOT NULL,
             descripcion VARCHAR2(300),
-            fecha_Inicio DATE NOT NUL,
+            fecha_Inicio DATE NOT NULL,
             fecha_Termino DATE NOT NULL,
             estado VARCHAR2(20) DEFAULT 'Pendiente' NOT NULL,
             CONSTRAINT ck_proyecto_fechas
