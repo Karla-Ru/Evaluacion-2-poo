@@ -183,3 +183,7 @@ permiso = Permiso(
 insertar_permiso(permiso)
 
 print(permiso.mostrar_datos())
+
+#GENERADOR INFORME
+
+from proyecto.model.generador_informes import GeneradorInformes
