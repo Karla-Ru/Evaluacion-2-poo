@@ -1,5 +1,6 @@
-
 from config.app_config import conectar_db, oracledb
+
+from proyecto.model.permiso import Permiso
 
 #CREAR TABLA ROLES
 
@@ -41,48 +42,6 @@ def validar_tabla_rol():
     finally:
         cursor.close()
         conn.close()
-
-#CREAR TABLA PERMISOS
-
-def validar_tabla_permiso():
-
-    consulta_sql = """
-        CREATE TABLE permisos (
-            id_permiso NUMBER GENERATED ALWAYS AS IDENTITY
-                (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
-            nombre VARCHAR2(80) NOT NULL,
-            descripcion VARCHAR2(250),
-
-            CONSTRAINT uq_permiso_nombre UNIQUE (nombre)
-        )
-    """
-
-    conn = conectar_db()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute("""
-            BEGIN
-                EXECUTE IMMEDIATE :sql;
-            EXCEPTION
-                WHEN OTHERS THEN
-                    IF SQLCODE != -955 THEN
-                        RAISE;
-                    END IF;
-            END;
-        """, {"sql": consulta_sql})
-
-        conn.commit()
-        print("Tabla permisos verificada correctamente.")
-
-    except Exception as e:
-        conn.rollback()
-        print("Error al crear la tabla permisos:", e)
-
-    finally:
-        cursor.close()
-        conn.close()
-
 
 #CREAR TABLA INTERMEDIA ROL_PERMISO
 
@@ -165,39 +124,6 @@ def insertar_rol(rol):
         cursor.close()
         conn.close()
 
-#INSERTAR PERMISO
-
-def insertar_permiso(permiso):
-
-    consulta_sql = """
-        INSERT INTO permisos (nombre, descripcion)
-        VALUES (:1, :2)
-    """
-
-    conn = conectar_db()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute(
-            consulta_sql,
-            (permiso.nombre, permiso.descripcion)
-        )
-
-        conn.commit()
-        print("Permiso registrado correctamente.")
-
-    except oracledb.IntegrityError as e:
-        conn.rollback()
-        print("Error: el permiso ya existe.", e)
-
-    except Exception as e:
-        conn.rollback()
-        print("Error al registrar el permiso:", e)
-
-    finally:
-        cursor.close()
-        conn.close()
-
 #ASIGNAR PERMISO A UN ROL
 
 def asignar_permiso_rol(id_rol: int, id_permiso: int):
@@ -232,7 +158,6 @@ def asignar_permiso_rol(id_rol: int, id_permiso: int):
         conn.close()
 
 #CLASE ROL
-
 class Rol:
 
     def __init__(
@@ -266,24 +191,7 @@ class Rol:
             f"Permisos: {', '.join(self.mostrar_permisos())}"
         )
 
-#CLASE PERMISO
-
-class Permiso:
-
-    def __init__(
-        self,
-        nombre: str,
-        descripcion: str
-    ):
-
-        self.id_permiso = None
-        self.nombre = nombre
-        self.descripcion = descripcion
-
-    def mostrar_datos(self):
-
-        return (
-            f"ID Permiso: {self.id_permiso}\n"
-            f"Nombre: {self.nombre}\n"
-            f"Descripción: {self.descripcion}"
-        )
+#CLASE PERMISO (SE ELIMINA CLASE PERMISO)
+#(SE ELIMINA CREAR TABLA PERMISOS)
+# SE ELIMINA INSERTAR PERMISO
+# SE ELIMINA CREAR TABLA INTERMEDIA ROL_PERMISO (VALIDAR)
