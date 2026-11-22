@@ -119,20 +119,21 @@ from proyecto.model.rol import (
     Rol,
     Permiso,
     validar_tabla_rol,
-    validar_tabla_permiso,
     validar_tabla_rol_permiso,
     insertar_rol,
-    insertar_permiso,
     asignar_permiso_rol
 )
 
-#EJECUCIÓN ROLES Y PERMISOS
+from proyecto.model.permiso import ( #AQUÍ HAY DOS FROM PORQUE PERTENECEN A MÓDULOS DISNTINTOS, PYTHON NO PERMITE AGRUPAR ELEMENTOS DE DISTINTOS M´DULOS EN ÚNICO FROM 
+    Permiso,
+    validar_tabla_permiso,
+    insertar_permiso
+)
 
 #CREAR TABLAS
 validar_tabla_rol()
 validar_tabla_permiso()
 validar_tabla_rol_permiso()
-
 
 #CREAR ROL ADMINISTRADOR
 rol_admin = Rol(
@@ -141,7 +142,6 @@ rol_admin = Rol(
 )
 
 insertar_rol(rol_admin)
-
 
 #CREAR PERMISOS
 permiso_empleados = Permiso(
@@ -162,3 +162,24 @@ permiso_informes = Permiso(
 insertar_permiso(permiso_empleados)
 insertar_permiso(permiso_proyectos)
 insertar_permiso(permiso_informes)
+
+#PERMISOS
+
+from proyecto.model.permiso import (
+    Permiso,
+    validar_tabla_permiso,
+    insertar_permiso
+)
+
+#EJECUCIÓN PERMISOS
+
+validar_tabla_permiso()
+
+permiso = Permiso(
+    nombre="GESTIONAR_EMPLEADOS",
+    descripcion="Permite registrar, modificar y eliminar empleados."
+)
+
+insertar_permiso(permiso)
+
+print(permiso.mostrar_datos())
