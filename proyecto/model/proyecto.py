@@ -275,4 +275,3 @@ class Proyecto:
     def __str__(self) -> str:
         return (f"Proyecto [{self.idProyecto}] {self.nombre} | {self.estado} | "
                 f"{self.__fechaInicio} -> {self.__fechaTermino} | ")
-
