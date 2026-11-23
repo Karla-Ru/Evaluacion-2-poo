@@ -32,7 +32,7 @@ def validar_tabla_registro_tiempo():
         error = e.args[0]
 
         if error.code == 955: #La tabla ya existe
-            print("resgitros_tiempo verificada correctamente")
+            print("registros_tiempo verificada correctamente")
         else:
             print(f"Error: Creación de tabla registros_tiempo | {e}")
     finally:

@@ -33,6 +33,9 @@ from proyecto.view.vista_registro_tiempo import (
     ver_mis_registros
 )
 from proyecto.view.vista_informes import menu_informes
+from proyecto.model.usuario_sistema import validar_tabla_usuario_sistema, existe_administrador
+from getpass import getpass
+from proyecto.model.administrador import Administrador, insertar_administrador
 
 #INICIALIZACIÓN DEL SISTEMA
 
@@ -56,16 +59,54 @@ def inicializar_sistema():
 
     print("\n[INFO] Inicialización del sistema finalizada.")
 
+
+def crear_primer_administrador():
+
+    # Seguridad: solo se permite si todavía no existe ningún administrador
+    if existe_administrador():
+        print("\n[WARNING] Ya existe un administrador. Inicie sesión con esa cuenta.")
+        return
+
+    print("\n========== CREAR PRIMER ADMINISTRADOR ==========")
+
+    nombre_usuario = input("Nombre de usuario: ").strip()
+    if not nombre_usuario:
+        print("[WARNING] El nombre de usuario es obligatorio.")
+        return
+
+    clave = getpass("Contraseña (no se verá al escribir): ")
+    if len(clave) < 8:
+        print("[WARNING] La contraseña debe tener al menos 8 caracteres.")
+        return
+
+    confirmacion = getpass("Repita la contraseña: ")
+    if clave != confirmacion:
+        print("[WARNING] Las contraseñas no coinciden.")
+        return
+
+    administrador = Administrador(
+        nombre_usuario=nombre_usuario,
+        clave=clave
+    )
+
+    insertar_administrador(administrador)
+
 # MENÚ INICIAL
 
 def menu_inicial():
 
     while True:
 
+        hay_administrador = existe_administrador()
+
         print("\n============================================")
         print("          ECOTECH SOLUTIONS")
         print("============================================")
         print("1. Iniciar sesión")
+
+        if not hay_administrador:
+            print("2. Crear primer administrador")
+
         print("0. Salir del sistema")
         print("============================================")
 
@@ -79,6 +120,10 @@ def menu_inicial():
 
             if usuario is not None:
                 gestionar_sesion(usuario)
+
+        elif opcion == "2" and not hay_administrador:
+
+            crear_primer_administrador()
 
         elif opcion == "0":
 
@@ -279,3 +324,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
