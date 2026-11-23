@@ -7,6 +7,9 @@ from proyecto.model.empleado import (
 )
 
 from proyecto.model.proyecto import (Proyecto, validar_tabla_proyecto)
+from proyecto.model.asignacion_proyecto import listar_asignaciones_proyecto
+from proyecto.model.registro_tiempo import (RegistroTiempo, listar_registros_empleado, total_horas_proyecto)
+
 
 def main():
     validar_tabla_empleado()

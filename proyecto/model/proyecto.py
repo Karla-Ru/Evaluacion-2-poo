@@ -89,6 +89,14 @@ def insertar_datos_proyecto(proyecto):
         if conn:
             conn.close()
 
+def obtener_proyecto(id_proyecto: int):
+    filas = consultar_bd("""
+        select id_proyecto, nombre, descripcion, fecha_inicio, fecha_termino, estado 
+        from proyectos
+        where id_proyecto = :1
+    """, (id_proyecto))
+    return filas[0] if filas else None
+
 # Retorna como lista de tuplas
 def listar_proyectos() -> list:
     return consultar_bd("""
@@ -124,35 +132,34 @@ class ProyectoRepositorio():
                 conn.close()
 
 
-    def modificarProyecto(self, nombre: str = None, descripcion: str = None, fechaInicio: date = None, fechaTermino: date = None) -> bool:
-        if nombre is not None:
-            self.nombre = nombre
-        if descripcion is not None:
-            self.descripcion = descripcion
-        if fechaInicio is not None:
-            self.fecha_inicio = fechaInicio
-        if fechaTermino is not None:
-            self.fecha_termino = fechaTermino
+    def modificarProyecto(self, nombre: str = None, descripcion: str = None, fechaInicio: date = None, fechaTermino: date = None):
+        nuevo_nombre = nombre if nombre is not None else self.nombre
+        nueva_descripcion = descripcion if descripcion is not None else self.descripcion
+        nueva_fecha_inicio = fecha_inicio if fecha_inicio is not None else self.fecha_inicio
+        nueva_fecha_termino = fecha_termino if fecha_termino is not None else self.fecha_termino
 
-        if self.fecha_termino < self.fecha_inicio:
-            print("Error: La fecha de término no puede ser anterior a la de inicio.")
+        if not isinstance(nuevo_nombre, str) or not nuevo_nombre.strip():
+            print("Nombre no corresponde a tipo str o está vacío")
             return False
 
-        consulta_sql = """
-        UPDATE proyectos
-        SET nombre = :nombre, descripcion = :descripcion,
-            fecha_inicio = :fecha_inicio, fecha_termino = :fecha_termino
-        WHERE id_proyecto = :id_proyecto
-        """
-        ok = self._ejecutar(consulta_sql, {
-            "nombre"       : self.nombre,
-            "descripcion"  : self.descripcion,
-            "fecha_inicio" : self.fecha_inicio,
-            "fecha_termino": self.fecha_termino,
-            "id_proyecto"  : self.id_proyecto,
-        })
-        print("Proyecto modificado correctamente" if ok else "No se pudo modificar el proyecto")
-        return ok
+        if nueva_fecha_termino < nueva_fecha_inicio:
+            print("La fecha de término no puede ser anterior a la de inicio")
+            return False
+
+        actualizado = ejecutar_cambio_bd("""
+            update proyectos set nombre = :1, descripcion = :2, fecha_inicio = :3, fecha_termino = :4
+            where id_proyecto = :5
+        """, (nuevo_nombre, nueva_descripcion, nueva_fecha_inicio, nueva_fecha_termino, self.id_proyecto))
+
+        if actualizado:
+            self.nombre        = nuevo_nombre
+            self.descripcion   = nueva_descripcion
+            self.fecha_inicio  = nueva_fecha_inicio
+            self.fecha_termino = nueva_fecha_termino
+            print("[INFO] Proyecto actualizado correctamente")
+        else:
+            print("[ERROR] No se pudo actualizar el proyecto")
+        return actualizado
 
     # Elimina el proyecto lo marca como cancelado y libera a los empleados
     def eliminarProyecto(self) -> bool:
@@ -163,7 +170,23 @@ class ProyectoRepositorio():
         print(f"Proyecto '{self.nombre}' eliminado." if ok else "No se encontró el proyecto a eliminar.")
         return ok
 
-    
+    def cambiar_estado(self, nuevo_estado: str):
+        if not isinstance(nuevo_estado, str):
+            print("Nuevo estado no corresponde a tipo str")
+            return False
+
+        if nuevo_estado not in self.estados_validos:
+            print(f"Estado inválido. Use uno de: {', '.join(self.estados_validos)}")
+            return False
+
+        actualizado = ejecutar_cambio_bd("update proyectos set estado = :1 where id_proyecto = :2", (nuevo_estado, self.id_proyecto))
+
+        if actualizado:
+            self.estado = nuevo_estado
+            print(f"[INFO] Estado del proyecto cambiado a '{nuevo_estado}'")
+        else:
+            print("[ERROR] No se pudo cambiar el estado")
+        return actualizado
 class Proyecto(ProyectoRepositorio):
     estados_validos = ("Pendiente", "En curso", "Finalizado", "Cancelado")
 
