@@ -1,191 +1,281 @@
-from datetime import date
-
 from proyecto.model.empleado import (
-    Empleado,
     validar_tabla_empleado,
-    insertar_datos_empleado
+    obtener_empleado_por_id
 )
+from proyecto.model.departamento import validar_tabla_departamento
+from proyecto.model.proyecto import validar_tabla_proyecto
+from proyecto.model.asignacion_proyecto import (
+    validar_tabla_asignacion_proyecto,
+    listar_asignaciones_empleado
+)
+from proyecto.model.registro_tiempo import validar_tabla_registro_tiempo
+from proyecto.model.usuario_sistema import validar_tabla_usuario_sistema
+from proyecto.model.rol import (
+    validar_tabla_rol,
+    validar_tabla_rol_permiso
+)
+from proyecto.model.permiso import validar_tabla_permiso
 
-from proyecto.model.proyecto import (Proyecto, validar_tabla_proyecto)
-from proyecto.model.asignacion_proyecto import listar_asignaciones_proyecto
-from proyecto.model.registro_tiempo import (RegistroTiempo, listar_registros_empleado, total_horas_proyecto)
+from proyecto.view.vista_usuario import (
+    iniciar_sesion,
+    cerrar_sesion,
+    obtener_usuario_en_sesion,
+    tiene_permiso,
+    registrar_administrador,
+    registrar_usuario_empleado
+)
+from proyecto.view.vista_empleado import menu_empleados
+from proyecto.view.vista_departamento import menu_departamentos
+from proyecto.view.vista_proyecto import menu_proyectos
+from proyecto.view.vista_registro_tiempo import (
+    menu_registro_tiempo,
+    registrar_mis_horas,
+    ver_mis_registros
+)
+from proyecto.view.vista_informes import menu_informes
 
+#INICIALIZACIÓN DEL SISTEMA
+
+def inicializar_sistema():
+
+    print("\n============================================")
+    print("       INICIALIZANDO ECOTECH SOLUTIONS")
+    print("============================================")
+
+    validar_tabla_empleado()
+    validar_tabla_departamento()
+    validar_tabla_proyecto()
+    validar_tabla_asignacion_proyecto()
+    validar_tabla_registro_tiempo()
+
+    validar_tabla_rol()
+    validar_tabla_permiso()
+    validar_tabla_rol_permiso()
+
+    validar_tabla_usuario_sistema()
+
+    print("\n[INFO] Inicialización del sistema finalizada.")
+
+# MENÚ INICIAL
+
+def menu_inicial():
+
+    while True:
+
+        print("\n============================================")
+        print("          ECOTECH SOLUTIONS")
+        print("============================================")
+        print("1. Iniciar sesión")
+        print("0. Salir del sistema")
+        print("============================================")
+
+        opcion = input("Seleccione una opción: ").strip()
+
+        if opcion == "1":
+
+            iniciar_sesion()
+
+            usuario = obtener_usuario_en_sesion()
+
+            if usuario is not None:
+                gestionar_sesion(usuario)
+
+        elif opcion == "0":
+
+            print("\n[INFO] Cerrando EcoTech Solutions...")
+            break
+
+        else:
+
+            print("\n[WARNING] Opción no válida.")
+
+#GESTIÓN DE USUARIOS
+
+def menu_gestion_usuarios():
+
+    while True:
+
+        print("\n============================================")
+        print("             GESTIÓN DE USUARIOS")
+        print("============================================")
+        print("1. Registrar administrador")
+        print("2. Crear cuenta de empleado")
+        print("0. Volver al menú administrativo")
+        print("============================================")
+
+        opcion = input("Seleccione una opción: ").strip()
+
+        if opcion == "1":
+
+            registrar_administrador()
+
+        elif opcion == "2":
+
+            registrar_usuario_empleado()
+
+        elif opcion == "0":
+
+            break
+
+        else:
+
+            print("\n[WARNING] Opción no válida.")
+
+#MENÚ DEL ADMINISTRADOR
+
+def menu_administrador():
+
+    while True:
+
+        print("\n============================================")
+        print("          MENÚ DEL ADMINISTRADOR")
+        print("============================================")
+        print("1. Gestión de empleados")
+        print("2. Gestión de departamentos")
+        print("3. Gestión de proyectos")
+        print("4. Registro de tiempo")
+        print("5. Gestión de usuarios")
+        print("6. Consultar informes")
+        print("0. Cerrar sesión")
+        print("============================================")
+
+        opcion = input("Seleccione una opción: ").strip()
+
+        if opcion == "1":
+
+            if tiene_permiso("GESTIONAR_EMPLEADOS"):
+                menu_empleados()
+
+        elif opcion == "2":
+
+            if tiene_permiso("GESTIONAR_DEPARTAMENTOS"):
+                menu_departamentos()
+
+        elif opcion == "3":
+
+            if tiene_permiso("GESTIONAR_PROYECTOS"):
+                menu_proyectos()
+
+        elif opcion == "4":
+
+            if tiene_permiso("GESTIONAR_REGISTROS_TIEMPO"):
+                menu_registro_tiempo()
+
+        elif opcion == "5":
+
+            if tiene_permiso("GESTIONAR_USUARIOS"):
+                menu_gestion_usuarios()
+
+        elif opcion == "6":
+
+            if tiene_permiso("CONSULTAR_INFORMES"):
+                menu_informes()
+
+        elif opcion == "0":
+
+            print("\n[INFO] Regresando al menú inicial...")
+            break
+
+        else:
+
+            print("\n[WARNING] Opción no válida.")
+
+def menu_empleado(usuario):
+
+    id_empleado = usuario.get("id_empleado")
+
+    if id_empleado is None:
+        print("[ERROR] Esta cuenta no está vinculada a un empleado.")
+        return
+
+    while True:
+        print("\n========== MENÚ DEL EMPLEADO ==========")
+        print("1. Consultar mis datos")
+        print("2. Ver mis proyectos asignados")
+        print("3. Registrar mis horas")
+        print("4. Consultar mis registros de tiempo")
+        print("0. Cerrar sesión")
+
+        opcion = input("\nSeleccione una opción: ").strip()
+
+        if opcion == "1":
+
+            if tiene_permiso("CONSULTAR_DATOS_PROPIOS"):
+                empleado = obtener_empleado_por_id(id_empleado)
+
+                if empleado:
+                    print("\n" + empleado.mostrar_datos())
+                else:
+                    print("[WARNING] No se encontraron tus datos.")
+
+        elif opcion == "2":
+
+            if tiene_permiso("CONSULTAR_PROYECTOS_ASIGNADOS"):
+                asignaciones = listar_asignaciones_empleado(id_empleado)
+
+                if not asignaciones:
+                    print("\nNo tienes proyectos asignados.")
+                else:
+                    print("\n========== MIS PROYECTOS ==========")
+
+                    for fila in asignaciones:
+                        print(
+                            f"\nProyecto: {fila[2]}"
+                            f"\nID: {fila[1]}"
+                            f"\nDescripción: {fila[3] or 'Sin descripción'}"
+                            f"\nEstado: {fila[4]}"
+                            f"\nRol: {fila[5]}"
+                            f"\nHoras asignadas: {fila[6]}"
+                            f"\nFecha de asignación: {fila[7]}"
+                        )
+
+        elif opcion == "3":
+
+            if tiene_permiso("REGISTRAR_HORAS"):
+                registrar_mis_horas(id_empleado)
+
+        elif opcion == "4":
+
+            if tiene_permiso("CONSULTAR_DATOS_PROPIOS"):
+                ver_mis_registros(id_empleado)
+
+        elif opcion == "0":
+            print("\nCerrando sesión...")
+            break
+
+        else:
+            print("[WARNING] Opción no válida.")
+
+#GESTIÓN DE SESIÓN
+
+def gestionar_sesion(usuario):
+
+    rol = usuario["tipo_usuario"]
+
+    if rol == "ADMINISTRADOR":
+
+        print("\n[INFO] Accediendo al menú de administrador.")
+
+        menu_administrador()
+
+    elif rol == "EMPLEADO":
+
+        print("\n[INFO] Accediendo al menú de empleado.")
+
+        menu_empleado(usuario)
+
+    else:
+
+        print("[ERROR] El rol del usuario no es reconocido.")
+
+    cerrar_sesion()
+#PUNTO DE ENTRADA
 
 def main():
-    validar_tabla_empleado()
-    validar_tabla_proyecto()
 
-#EJECUCIÓN DE EMPLEADO
-empleado1 = Empleado(
-    nombre="Camila González",
-    direccion="Puerto Montt",
-    telefono="987654321",
-    correo_electronico="camila@ecotech.cl",
-    fecha_contratacion=date.today(),
-    salario=850000
-)
+    inicializar_sistema()
 
-print(empleado1.mostrar_datos()) 
-
-insertar_datos_empleado(empleado1) 
-
-empleado1.actualizar_salario(950000) 
-
-empleado1.cambiar_estado(False)
-
-#EJECUCIÓN DE DEPARTAMENTO
-from proyecto.model.departamento import (
-    Departamento,
-    validar_tabla_departamento,
-    insertar_datos_departamento
-)
-
-validar_tabla_departamento()
-
-#CREAR UN DEPARTAMENTO
-departamento = Departamento(
-    nombre="Desarrollo Tecnológico",
-    descripcion="Departamento encargado del desarrollo de soluciones tecnológicas.",
-    id_gerente=1
-)
-
-#INSERTAR EN ORACLE
-insertar_datos_departamento(departamento)
-
-#MOSTRAR INFO
-print(departamento.mostrar_datos())
-
-# CREAR UN PROYECTO
-proyecto1 = Proyecto (
-    nombre="Sitio Web Corporativo",
-    descripcion="Desarrollo del nuevo sitio web de la empresa",
-    fechaInicio=date(2026, 1, 10),
-    fechaTermino=date(2026, 6, 30),
-)
-proyecto1.crearProyecto()
-
-# CAMBIAR EDSTADO Y MODIFICAR DATOS
-proyecto1.cambiarEstado("En curso")
-proyecto1.modificarProyecto(nombre="Sitio Web 2.0", fechaTermino=date(2026, 8, 31))
-
-# ASIGNAR EMPLEADO
-proyecto1.asignarEmpleado(1)
-proyecto1.desasignarEmpleado(1)
-
-# MOSTRAR LOS PROYECTOS GUARDADOS
-print("\n--- Proyectos en la base de datos ---")
-for p in Proyecto.listarProyectos():
-    print(p)
-
-# ELIMINAR PROYECTO
-proyecto1.eliminarProyecto()
+    menu_inicial()
 
 if __name__ == "__main__":
     main()
-
-
-#LO DE USUARIOS
-from proyecto.model.usuario_sistema import (
-    validar_tabla_usuario_sistema,
-    autenticar_usuario
-)
-
-from proyecto.model.usuario_empleado import (
-    UsuarioEmpleado,
-    insertar_usuario_empleado
-)
-
-#EJECUCIÓN ADMINISTRADOR
-
-from proyecto.model.administrador import Administrador, insertar_administrador
-
-administrador = Administrador(
-    nombre_usuario="admin",
-    clave="Admin12345"
-)
-
-insertar_administrador(administrador)
-
-print(administrador.mostrar_datos())
-
-print(administrador.mostrar_permisos()) #CONSULTAR PERMISOS
-
-administrador.gestionar_empleados() #PROBAR FUNCIONALIDADES
-administrador.gestionar_proyectos()
-administrador.consultar_informes()
-
-#EJECUCIÓN ROL
-
-from proyecto.model.rol import (
-    Rol,
-    Permiso,
-    validar_tabla_rol,
-    validar_tabla_rol_permiso,
-    insertar_rol,
-    asignar_permiso_rol
-)
-
-from proyecto.model.permiso import ( #AQUÍ HAY DOS FROM PORQUE PERTENECEN A MÓDULOS DISNTINTOS, PYTHON NO PERMITE AGRUPAR ELEMENTOS DE DISTINTOS M´DULOS EN ÚNICO FROM 
-    Permiso,
-    validar_tabla_permiso,
-    insertar_permiso
-)
-
-#CREAR TABLAS
-validar_tabla_rol()
-validar_tabla_permiso()
-validar_tabla_rol_permiso()
-
-#CREAR ROL ADMINISTRADOR
-rol_admin = Rol(
-    nombre="ADMINISTRADOR",
-    descripcion="Acceso a las funciones administrativas del sistema."
-)
-
-insertar_rol(rol_admin)
-
-#CREAR PERMISOS
-permiso_empleados = Permiso(
-    nombre="GESTIONAR_EMPLEADOS",
-    descripcion="Permite registrar, modificar y eliminar empleados."
-)
-
-permiso_proyectos = Permiso(
-    nombre="GESTIONAR_PROYECTOS",
-    descripcion="Permite administrar los proyectos."
-)
-
-permiso_informes = Permiso(
-    nombre="CONSULTAR_INFORMES",
-    descripcion="Permite consultar los informes del sistema."
-)
-
-insertar_permiso(permiso_empleados)
-insertar_permiso(permiso_proyectos)
-insertar_permiso(permiso_informes)
-
-#PERMISOS
-
-from proyecto.model.permiso import (
-    Permiso,
-    validar_tabla_permiso,
-    insertar_permiso
-)
-
-#EJECUCIÓN PERMISOS
-
-validar_tabla_permiso()
-
-permiso = Permiso(
-    nombre="GESTIONAR_EMPLEADOS",
-    descripcion="Permite registrar, modificar y eliminar empleados."
-)
-
-insertar_permiso(permiso)
-
-print(permiso.mostrar_datos())
-
-#GENERADOR INFORME
-
-from proyecto.model.generador_informes import GeneradorInformes
-

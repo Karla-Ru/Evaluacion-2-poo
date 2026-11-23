@@ -151,6 +151,74 @@ def ver_registros_empleado():
 
     print(f"\nTotal: {total_horas_empleado(id_empleado)} horas")
 
+
+def registrar_mis_horas(id_empleado: int):
+
+    print("\n===== REGISTRAR MIS HORAS =====")
+
+    try:
+        id_proyecto = int(input("ID del proyecto: ").strip())
+
+        if id_proyecto <= 0:
+            print("[WARNING] El ID debe ser positivo.")
+            return
+
+    except ValueError:
+        print("[WARNING] Ingrese un ID de proyecto válido.")
+        return
+
+    horas = pedir_horas("Horas trabajadas: ")
+
+    if horas is None:
+        return
+
+    descripcion = input("Descripción del trabajo: ").strip()
+
+    texto = input("Fecha (DD/MM/AAAA, ENTER para hoy): ").strip()
+    fecha = date.today()
+
+    if texto:
+        try:
+            fecha = datetime.strptime(texto, "%d/%m/%Y").date()
+        except ValueError:
+            print("[WARNING] Formato de fecha incorrecto.")
+            return
+
+    if fecha > date.today():
+        print("[WARNING] No se pueden registrar horas en una fecha futura.")
+        return
+
+    print("\nRegistrando tus horas...")
+
+    RegistroTiempo(
+        id_empleado,
+        id_proyecto,
+        horas,
+        descripcion,
+        fecha
+    )
+
+def ver_mis_registros(id_empleado: int):
+
+    print("\n===== MIS REGISTROS DE TIEMPO =====")
+
+    registros = listar_registros_empleado(id_empleado)
+
+    if not registros:
+        print("No tienes horas registradas.")
+        return
+
+    for fila in registros:
+        print(
+            f"Registro {fila[0]} | "
+            f"{fila[2]:%d/%m/%Y} | "
+            f"Proyecto {fila[1]} | "
+            f"{fila[3]} h | "
+            f"{fila[4] or ''}"
+        )
+
+    print(f"\nTotal de horas: {total_horas_empleado(id_empleado)}")
+
 def ver_registros_proyecto():
     print("\n===== HORAS DE UN PROYECTO =====")
 

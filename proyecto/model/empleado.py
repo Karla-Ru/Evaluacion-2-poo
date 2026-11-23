@@ -2,79 +2,57 @@ from __future__ import annotations #SE AGREGA PARA EVITAR REDUNDANCIA AL INSERTA
 from proyecto.config.app_config import conectar_db, oracledb
 from proyecto.security.cifrado_datos import cifrar_dato, descifrar_dato
 
-def insertar_datos_empleado(empleado: Empleado):
+def validar_tabla_empleado():
 
-    consulta_insert = """
-        INSERT INTO empleados
-        (nombre, direccion, telefono, correo_electronico,
-         fecha_contratacion, salario, activo)
-        VALUES (:1, :2, :3, :4, :5, :6, :7)
-        RETURNING id_empleado INTO :8
+    consulta_sql = """
+        CREATE TABLE empleados (
+            id_empleado NUMBER GENERATED ALWAYS AS IDENTITY
+                (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
+            nombre VARCHAR2(100) NOT NULL,
+            direccion VARCHAR2(500),
+            telefono VARCHAR2(50),
+            correo_electronico VARCHAR2(150) UNIQUE,
+            fecha_contratacion DATE,
+            salario NUMBER(10,2),
+            activo NUMBER(1) DEFAULT 1 NOT NULL
+        )
     """
+
     conn = None
     cursor = None
 
     try:
-        print("[PRUEBA 1] Conectando a Oracle...")
         conn = conectar_db()
 
-        if conn:
-            cursor = conn.cursor()
-            print("[PRUEBA 2] Conexión establecida.")
+        if conn is None:
+            print("[ERROR] No se pudo conectar a Oracle.")
+            return
 
-            direccion_cifrada = cifrar_dato(empleado.direccion)
-            telefono_cifrado = cifrar_dato(empleado.telefono)
+        cursor = conn.cursor()
+        cursor.execute(consulta_sql)
+        conn.commit()
 
-            id_generado = cursor.var(oracledb.NUMBER)
+        print("[INFO] Tabla empleados creada correctamente.")
 
-            print("[PRUEBA 3] Ejecutando INSERT...")
+    except oracledb.DatabaseError as e:
+        error = e.args[0]
 
-            cursor.execute(
-                consulta_insert,
-                (
-                    empleado.nombre,
-                    direccion_cifrada,
-                    telefono_cifrado,
-                    empleado.correo_electronico,
-                    empleado.fecha_contratacion,
-                    empleado.salario,
-                    int(empleado.activo),
-                    id_generado
-                )
-            )
-
-            print("[PRUEBA 4] INSERT ejecutado correctamente.")
-
-            valor_id = id_generado.getvalue()
-
-            print("[DEBUG] Valor recibido:", valor_id)
-            print("[DEBUG] Tipo recibido:", type(valor_id))
-
-            while isinstance(valor_id, list):
-                valor_id = valor_id[0]
-                
-            empleado.id_empleado = int(valor_id)
-            
-            print("[DEBUG] ID convertido:", empleado.id_empleado)
-
-            print(f"[PRUEBA 5] ID generado: {empleado.id_empleado}")
-
-            conn.commit()
-            print("[INFO] Empleado registrado correctamente.")
+        if error.code == 955:
+            print("[INFO] La tabla empleados ya existe.")
+        else:
+            print(f"[ERROR] No se pudo validar la tabla empleados: {e}")
 
     except Exception as e:
         if conn:
             conn.rollback()
-
-        print(f"[ERROR] Empleado no registrado: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"[ERROR] Error al validar empleados: {e}")
 
     finally:
         if cursor:
             cursor.close()
         if conn:
             conn.close()
+
 
 def insertar_datos_empleado(empleado: Empleado):
 

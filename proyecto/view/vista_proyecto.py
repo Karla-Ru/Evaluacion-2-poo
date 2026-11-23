@@ -45,7 +45,7 @@ def cargar_repositorio(id_proyecto: int):
 # PROYECTOS
 
 def registrar_proyecto():
-    print("\===== REGISTRAR PROYECTO =====")
+    print("\n===== REGISTRAR PROYECTO =====")
 
     nombre = input("Nombre del proyecto: ").strip()
     if not nombre:
@@ -65,7 +65,7 @@ def registrar_proyecto():
         print("[WARNING] La fecha de término no puede ser anterior a la de inicio.")
         return
 
-    print("\Registrando proyecto...")
+    print("\nRegistrando proyecto...")
     Proyecto(nombre, descripcion, fecha_inicio, fecha_termino)
 
 def mostrar_proyectos():
@@ -250,10 +250,6 @@ def menu_proyectos():
         print("6. Asignar empleado a proyecto")
         print("7. Desasignar empleado de proyecto")
         print("8. Ver empleados asignados")
-        print(" REGISTRO DE TIEMPO")
-        print("9. Registrar horas trabajadas")
-        print("10. Ver horas de un empleado")
-        print("11. Ver total de horas de un proyecto")
         print("0. Volver al menú principal")
         print("============================================")
 
