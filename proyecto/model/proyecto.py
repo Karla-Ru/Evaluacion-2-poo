@@ -9,26 +9,12 @@ def validar_tabla_proyecto():
             id_proyecto NUMBER GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
             nombre VARCHAR2(100) NOT NULL,
             descripcion VARCHAR2(300),
-            fecha_inicio DATE NOT NUL,
+            fecha_inicio DATE NOT NULL,
             fecha_termino DATE NOT NULL,
             estado VARCHAR2(20) DEFAULT 'Pendiente' NOT NULL,
             CONSTRAINT uq_proyecto_nombre UNIQUE (nombre),
             CONSTRAINT ck_proyecto_fechas CHECK (fecha_termino >= fecha_inicio),
             CONSTRAINT ck_proyecto_estado CHECK (estado IN ('Pendiente','En curso','Finalizado','Cancelado'))
-        )
-        """
-    
-        """
-        CREATE TABLE proyecto_empleado (
-        id_proyecto NUMBER NOT NULL,
-        id_empleado NUMBER NOT NULL,
-        CONSTRAINT pk_proyecto_empleado
-            PRIMARY KEY (id_proyecto, id_empleado)
-        CONSTRAINT fk_pe_proyecto
-            FOREIGN KEY (id_proyecto) REFERENCES proyectos(id_proyecto)
-            ON DELETE CASCADE,
-        COONSTRAINT fk_pe_empleado
-            FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado)
         )
         """
 
@@ -54,25 +40,68 @@ def validar_tabla_proyecto():
         if conn:
             conn.close()
 
-class Proyecto:
-    """ Representa los proyectos desarrollados por la empresa """
+def obtener_id_proyecto(nombre: str):
+    filas = consultar_bd("select id_proyecto from proyectos where nombre = :1", (nombre,))
+    return int(filas[0][0]) if filas else None
 
-    estados_validos = ("Pendiente", "En curso", "Finalizado", "Cancelado")
 
-    def __init__(self, nombre: str, descripcion: str, fechaInicio: date, fechaTermino: date, estado: str = "Pendiente"):
-        self.__idProyecto   = None 
-        self.__nombre       = nombre
-        self.__descripcion  = descripcion
-        self.__fechaInicio  = fechaInicio
-        self.__fechaTermino = fechaTermino
-        self.__estado       = estado or "Pendiente"
+def insertar_datos_proyecto(proyecto):
+    consulta_insert = """
+        insert into proyectos (nombre, descripcion, fecha_inicio, fecha_termino, estado)
+        values (:1, :2, :3, :4, :5)
+        returning id_proyecto into :6
+    """
+    conn = None
+    cursor = None
 
-  
-        return self.__estado
+    try:
+        conn = conectar_db()
 
-# Ejecutar SQL
-    @staticmethod
-    def _ejecutar(consulta_sql: str, parametros: dict) -> bool:
+        if conn:
+            cursor = conn.cursor()
+            id_generado = cursor.var(oracledb.NUMBER)  #Oracle devuelve el id creado
+            cursor.execute(consulta_insert, (proyecto.nombre, proyecto.descripcion, proyecto.fecha_inicio,
+                                             proyecto.fecha_termino, proyecto.estado, id_generado))
+            conn.commit()
+
+            proyecto.id_proyecto = int(id_generado.getvalue()[0])
+            print(f"[INFO] Proyecto insertado correctamente (ID {proyecto.id_proyecto})")
+    except oracledb.IntegrityError as e:
+        if conn:
+            conn.rollback()  
+
+        error = e.args[0]
+
+        if error.code == 1:  # Existe un proyecto con ese nombre 
+            print("[WARNING] Ya existe un proyecto con ese nombre")
+            proyecto.id_proyecto = obtener_id_proyecto(proyecto.nombre)
+        else:
+            print(f"[ERROR] Error de integridad | {e}")
+    except Exception as e:
+        if conn:
+            conn.rollback()
+
+        print(f"[ERROR] Proyecto no registrado | {e}")
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
+
+# Retorna como lista de tuplas
+def listar_proyectos() -> list:
+    return consultar_bd("""
+        select id_proyecto, nombre, estado, fecha_inicio, fecha_termino
+        from proyectos
+        order by id_proyecto
+    """, ())
+
+class ProyectoRepositorio():
+    def __init__(self):
+        pass
+
+    def _ejecutar(self, consulta_sql: str, parametros: dict) -> bool:
         conn = None
         cursor = None
         try:
@@ -84,53 +113,9 @@ class Proyecto:
                 return cursor.rowcount > 0
             return False
         except oracledb.DatabaseError as e:
-            print(f"Error en la base de datos: {e}")
-            return False
-        finally:
-            if cursor:
-                cursor.close()
             if conn:
-                conn.close()
-
-    # Validar datos del proyecto antes de crearlo
-    def crearProyecto(self) -> bool:
-        if not isinstance(self.nombre, str) or not self.__nombre.strip():
-            print("Error: El nombre del proyecto no puede estar vacío.")
-            return False
-        if self.__fechaTermino < self.__fechaInicio:
-            print("Error: La fecha de término no puede ser anterior a la de inicio.")
-            return False
-        if self.__estado not in self.estados_validos:
-            print(f"Error: Estado inválido. Use uno de: {', '.join(self.estados_validos)}")
-            return False
-
-        consulta_sql = """
-        INSERT INTO proyectos (nombre, descripcion, fecha_inicio, fecha_termino, estado)
-        VALUES (:nombre, :descripcion, :fecha:inicio, :fecha_termino, :estado)
-        RETURNING id_proyecto INTO :id_proyecto
-        """
-        conn = None
-        cursor = None
-        try:
-            conn = conectar_db()
-            if conn:
-                cursor = conn.cursor()
-                id_var = cursor.var(oracledb.NUMBER)
-                cursor.execute(consulta_sql, {
-                    "nombre"       : self.__nombre,
-                    "descripcion"  : self.__descripcion,
-                    "fecha_inicio" : self.__fechaInicio,
-                    "fecha_termino": self.__fechaTermino,
-                    "estado"       : self.__estado,
-                    "id_proyecto"  : id_var,
-                })
-                conn.commit()
-                self.__idProyecto = int(id_var.getvalue()[0])
-                print(f"Proyecto '{self.__nombre}' creado con ID {self.__idProyecto}.")
-                return True
-            return False
-        except oracledb.DatabaseError as e:
-            print(f"Error al crear el proyecto: {e}")
+                conn.rollback()
+            print(f"[ERROR] Base de datos | {e}")
             return False
         finally:
             if cursor:
@@ -141,26 +126,30 @@ class Proyecto:
 
     def modificarProyecto(self, nombre: str = None, descripcion: str = None, fechaInicio: date = None, fechaTermino: date = None) -> bool:
         if nombre is not None:
-            self.__nombre = nombre
+            self.nombre = nombre
         if descripcion is not None:
-            self.__ = descripcion
+            self.descripcion = descripcion
         if fechaInicio is not None:
-            self.__fechaiInicio = fechaInicio
+            self.fecha_inicio = fechaInicio
         if fechaTermino is not None:
-            self.__fechaTermino = fechaTermino
+            self.fecha_termino = fechaTermino
+
+        if self.fecha_termino < self.fecha_inicio:
+            print("Error: La fecha de término no puede ser anterior a la de inicio.")
+            return False
 
         consulta_sql = """
         UPDATE proyectos
         SET nombre = :nombre, descripcion = :descripcion,
-            fecha_inicio = :fecha_inicio, fecha_termino = fecha_termino
-        WHERE id_proyecto = id_proyecto
+            fecha_inicio = :fecha_inicio, fecha_termino = :fecha_termino
+        WHERE id_proyecto = :id_proyecto
         """
         ok = self._ejecutar(consulta_sql, {
-            "nombre"       : self.__nombre,
-            "descripcion"  : self.__descripcion,
-            "fecha_inicio" : self.__fechaInicio,
-            "fecha_termino": self.__fechaTermino,
-            "id_proyecto"  : self.__idProyecto,
+            "nombre"       : self.nombre,
+            "descripcion"  : self.descripcion,
+            "fecha_inicio" : self.fecha_inicio,
+            "fecha_termino": self.fecha_termino,
+            "id_proyecto"  : self.id_proyecto,
         })
         print("Proyecto modificado correctamente" if ok else "No se pudo modificar el proyecto")
         return ok
@@ -169,74 +158,53 @@ class Proyecto:
     def eliminarProyecto(self) -> bool:
         ok = self._ejecutar(
             "DELETE FROM proyectos WHERE id_proyecto = :id_proyecto",
-            {"id_proyecto": self.__idProyecto},
+            {"id_proyecto": self.id_proyecto},
         )
-        print(f"Proyecto '{self.__nombre}' eliminado." if ok else "No se encontró el proyecto a eliminar.")
+        print(f"Proyecto '{self.nombre}' eliminado." if ok else "No se encontró el proyecto a eliminar.")
         return ok
 
-    def asignarEmpleado(self, idEmpleado: int) -> bool:
-        ok = self._ejecutar(
-            "INSERT INTO proyecto_empleado (id_proyecto, id_empleado) "
-            "VALUES (:id_proyecto, :id_empleado)",
-            {"id_proyecto": self.__idProyecto, "id_empleado": idEmpleado},
-        )
-        print(f"Empleado {idEmpleado} asignado al proyecto." if ok
-            else f"No se pudo asignar el empleado {idEmpleado}.")
-        return ok
+    
+class Proyecto(ProyectoRepositorio):
+    estados_validos = ("Pendiente", "En curso", "Finalizado", "Cancelado")
 
-    def desasignarEmpleado(self, idEmpleado: int) -> bool:
-        ok = self._ejecutar(
-            "DELETE FROM proyecto_empleado "
-            "WHERE id_proyecto = :id_proyecto AND id_empleado = :id_empleado",
-            {"id_proyecto": self.__idProyecto, "id_empleado": idEmpleado},
-        )
-        print(f"Empleado {idEmpleado} liberado del proyecto." if ok
-            else f"El empleado {idEmpleado} no está asignado.")
-        return ok
+    def __init__(self, nombre: str, descripcion: str, fechaInicio: date, fechaTermino: date, estado: str = "Pendiente"):
+        self.id_proyecto   = None 
+        self.nombre        = nombre
+        self.descripcion   = descripcion
+        self.fecha_inicio  = fechaInicio
+        self.fecha_termino = fechaTermino
+        self.estado        = estado or "Pendiente"
+        
+        self.crearProyecto ()
 
-    def cambiarEstado(self, nuevoEstado: str) -> bool:
-            if nuevoEstado not in self.estados_validos:
-                print(f"Estado inváldo. Use uno de: {', '.join(self.estados_validos)}")
-                return False
-            ok = self._ejecutar(
-                "UPDATE proyectos SET estado = :estado WHERE id_proyecto = :id_proyecto",
-                {"estado": nuevoEstado, "id_proyecto": self.__idProyecto},
-            )
-            if ok:    
-                self.__estado = nuevoEstado
-                print(f"Estado del proyecto cambiado a '{nuevoEstado}'.")
-            return ok
+    # Validar datos del proyecto antes de crearlo
+    def crearProyecto(self):
+        if not isinstance(self.nombre, str) or not self.nombre.strip():
+            print("Error: El nombre del proyecto no puede estar vacío.")
+            return False
+        if self.fecha_termino < self.fecha_inicio:
+            print("Error: La fecha de término no puede ser anterior a la de inicio.")
+            return False
+        if self.estado not in self.estados_validos:
+            print(f"Error: Estado inválido. Use uno de: {', '.join(self.estados_validos)}")
+            return False
 
-    # Devuelve los proyectos guardadados en Oracle
-    @staticmethod
-    def listarProyectos() -> list:
-        conn = None
-        cursor = None
-        proyectos = []
-        try:
-            conn = conectar_db()
-            if conn:
-                cursor = conn.cursor()
-                cursor.execute("""
-                    SELECT id_proyecto, nombre, descripcion, fecha_inicio, fecha_termino, estado
-                    FROM proyectos ORDER BY id_proyecto
-                """ )
-                for fila in cursor.fetchall():
-                    proyectos.append(Proyecto(
-                        idProyecto=fila[0], nombre=fila[1], descripcion=fila[2],
-                            fechaInicio=fila[3], fechaTermino=fila[4], estado=fila[5],
-                    ))
-        except oracledb.DatabaseError as e:
-            print(f"Error al listar proyectos: {e}")
-        finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
-        return proyectos
+        validar_tabla_proyecto()
+        insertar_datos_proyecto(self)
+        return self.id_proyecto is not None
+
+
+    def asignarEmpleado(self, id_empleado: int, rol_en_proyecto: str, horas_asignadas: float):
+        if self.id_proyecto is None:
+            print(f"Error: El proyecto no está guardado en la base de datos.")
+            return None
+
+        return AsignacionProyecto(id_empleado, self.id_proyecto, rol_en_proyecto, horas_asignadas)
+
+    def desasignarEmpleado(self, id_empleado: int) -> bool:
+        return eliminar_asignacion_bd(id_empleado, self.id_proyecto)
     
 
-    def __str__(self) -> str:
-        return (f"Proyecto [{self.idProyecto}] {self.nombre} | {self.estado} | "
-                f"{self.__fechaInicio} -> {self.__fechaTermino} | ")
-
+    def mostrar_datos(self):
+        return (f"Proyecto\n ID: {self.id_proyecto} | Nombre: {self.nombre} | Estado: {self.estado} | "
+                f"Inicio: {self.fecha_inicio} | Término: {self.fecha_termino}")
