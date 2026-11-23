@@ -1,4 +1,4 @@
-from config.app_config import conectar_db, oracledb
+from proyecto.config.app_config import conectar_db, oracledb
 
 from proyecto.model.permiso import Permiso
 
@@ -195,3 +195,55 @@ class Rol:
 #(SE ELIMINA CREAR TABLA PERMISOS)
 # SE ELIMINA INSERTAR PERMISO
 # SE ELIMINA CREAR TABLA INTERMEDIA ROL_PERMISO (VALIDAR)
+
+def obtener_permisos_rol(nombre_rol: str): #CONSULTAR PERMISOS ASOCIADOS A UN ROL
+
+    consulta_sql = """
+        SELECT p.nombre
+        FROM roles r
+        JOIN rol_permiso rp
+            ON r.id_rol = rp.id_rol
+        JOIN permisos p
+            ON rp.id_permiso = p.id_permiso
+        WHERE UPPER(r.nombre) = UPPER(:1)
+        ORDER BY p.nombre
+    """
+
+    conn = conectar_db()
+
+    if conn is None:
+        print("[ERROR] No se pudo conectar a Oracle.")
+        return []
+
+    cursor = None
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(consulta_sql, (nombre_rol,))
+
+        resultados = cursor.fetchall()
+
+        return [fila[0] for fila in resultados]
+
+    except Exception as e:
+        print("[ERROR] No se pudieron consultar los permisos:", e)
+        return []
+
+    finally:
+        if cursor is not None:
+            cursor.close()
+
+        conn.close()
+
+#VERIFICAR SI UN ROL TIENE UN PERMISO
+
+def verificar_permiso(nombre_rol: str, nombre_permiso: str) -> bool:
+
+    if not nombre_rol or not nombre_permiso:
+        return False
+
+    permisos = obtener_permisos_rol(nombre_rol)
+
+    return nombre_permiso.strip().upper() in [
+        permiso.upper() for permiso in permisos
+    ]

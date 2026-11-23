@@ -11,6 +11,23 @@ from proyecto.model.usuario_empleado import (
 )
 
 from proyecto.model.usuario_sistema import autenticar_usuario
+from proyecto.model.rol import verificar_permiso
+
+usuario_en_sesion = None #SESIÓN DEL USUARIO AUTENTICADO
+
+def tiene_permiso(nombre_permiso: str) -> bool:
+
+    if usuario_en_sesion is None:
+        print("[WARNING] Debe iniciar sesión primero.")
+        return False
+
+    rol = usuario_en_sesion["tipo_usuario"]
+
+    if verificar_permiso(rol, nombre_permiso):
+        return True
+
+    print("[ERROR] No tiene autorización para realizar esta operación.")
+    return False
 
 def pausar():
     input("\nPresione ENTER para continuar...")
@@ -37,8 +54,11 @@ def solicitar_credenciales():
 
     return nombre_usuario, clave
 
-def registrar_administrador():
+def registrar_administrador(): 
 
+    if not tiene_permiso("GESTIONAR_USUARIOS"):
+        return
+    
     print("\n========== REGISTRAR ADMINISTRADOR ==========")
 
     nombre_usuario, clave = solicitar_credenciales()
@@ -54,6 +74,9 @@ def registrar_administrador():
     insertar_administrador(administrador)
 
 def registrar_usuario_empleado():
+
+    if not tiene_permiso("GESTIONAR_USUARIOS"):
+        return
 
     print("\n========== CREAR CUENTA DE EMPLEADO ==========")
 
@@ -83,6 +106,8 @@ def registrar_usuario_empleado():
 
 def iniciar_sesion():
 
+    global usuario_en_sesion
+
     print("\n========== INICIO DE SESIÓN ==========")
 
     nombre_usuario = input("Nombre de usuario: ").strip()
@@ -96,13 +121,42 @@ def iniciar_sesion():
     if not clave:
         print("[WARNING] Ingrese su contraseña.")
         return
-
+    
     resultado = autenticar_usuario(nombre_usuario, clave)
 
-    if resultado:
+    if resultado is not None:
+        
+        usuario_en_sesion = resultado
+
         print("\n[INFO] Bienvenido al sistema.")
+        print(f"[INFO] Usuario: {usuario_en_sesion['nombre_usuario']}")
+        print(f"[INFO] Rol: {usuario_en_sesion['tipo_usuario']}")
+
+        if usuario_en_sesion["id_empleado"] is not None:
+            print(
+                f"[INFO] ID de empleado: "
+                f"{usuario_en_sesion['id_empleado']}"
+            )
+
     else:
         print("\n[WARNING] No fue posible iniciar sesión.")
+
+def cerrar_sesion():
+
+    global usuario_en_sesion
+
+    if usuario_en_sesion is None:
+        print("[WARNING] No hay ninguna sesión activa.")
+        return
+
+    print(
+        f"\n[INFO] Cerrando sesión de "
+        f"{usuario_en_sesion['nombre_usuario']}..."
+    )
+
+    usuario_en_sesion = None
+
+    print("[INFO] Sesión cerrada correctamente.")
 
 def menu_usuarios():
 
@@ -114,7 +168,11 @@ def menu_usuarios():
         print("============================================")
         print("1. Registrar administrador")
         print("2. Crear cuenta para empleado")
+        print("-------------------------------------------")
         print("3. Iniciar sesión")
+        print("4. Mostrar usuario en sesión")
+        print("5. Cerrar Sesión")
+        print("-------------------------------------------")
         print("0. Volver al menú principal")
         print("============================================")
 
@@ -130,6 +188,24 @@ def menu_usuarios():
 
         elif opcion == "3":
             iniciar_sesion()
+            pausar()
+
+        elif opcion == "4":
+            if usuario_en_sesion is not None:
+                print("\n========== USUARIO EN SESIÓN ==========")
+                print(f"ID: {usuario_en_sesion['id_usuario']}")
+                print(f"Usuario: {usuario_en_sesion['nombre_usuario']}")
+                print(f"Rol: {usuario_en_sesion['tipo_usuario']}")
+
+                if usuario_en_sesion["id_empleado"] is not None:
+                    print(f"Empleado asociado: {usuario_en_sesion['id_empleado']}")
+            else:
+                print("\n[WARNING] No hay ninguna sesión activa.")
+
+            pausar()
+
+        elif opcion == "5":
+            cerrar_sesion()
             pausar()
 
         elif opcion == "0":
