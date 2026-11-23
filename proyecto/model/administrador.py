@@ -1,7 +1,7 @@
 from proyecto.model.usuario_sistema import UsuarioSistema
 from proyecto.config.app_config import conectar_db, oracledb
 
-# INSERTAR ADMINISTRADOR
+#INSERTAR ADMINISTRADOR
 
 def insertar_administrador(administrador):
 
