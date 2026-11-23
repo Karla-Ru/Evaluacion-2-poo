@@ -151,7 +151,7 @@ def ver_registros_empleado():
 
     print(f"\nTotal: {total_horas_empleado(id_empleado)} horas")
 
-def ver_registros_pryecto():
+def ver_registros_proyecto():
     print("\n===== HORAS DE UN PROYECTO =====")
 
     id_proyecto = pedir_id("ID del proyecto: ")
@@ -213,4 +213,3 @@ def menu_registro_tiempo():
         else:
             print("\n[WARNING] Opción no válida.")
             pausar()
-            
