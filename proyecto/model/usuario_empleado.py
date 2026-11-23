@@ -1,5 +1,5 @@
-from usuario_sistema import UsuarioSistema
-from config.app_config import conectar_db, oracledb
+from proyecto.model.usuario_sistema import UsuarioSistema
+from proyecto.config.app_config import conectar_db, oracledb
 
 #INSERTAR USUARIO EMPLEADO
 
