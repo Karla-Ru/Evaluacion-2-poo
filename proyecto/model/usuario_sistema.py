@@ -146,6 +146,7 @@ def autenticar_usuario(nombre_usuario: str, clave: str):
                tipo_usuario,
                activo,
                intentos_fallidos,
+               id_empleado,
                CASE
                    WHEN bloqueado_hasta > SYSTIMESTAMP THEN 1
                    ELSE 0
@@ -159,7 +160,7 @@ def autenticar_usuario(nombre_usuario: str, clave: str):
 
     if conn is None:
         print("[ERROR] No se pudo conectar a Oracle.")
-        return False
+        return None
 
     cursor = conn.cursor()
 
@@ -172,7 +173,7 @@ def autenticar_usuario(nombre_usuario: str, clave: str):
         if resultado is None:
             conn.rollback()
             print("[ERROR] Usuario o contraseña incorrectos.")
-            return False
+            return None
 
         (
             id_usuario,
@@ -181,20 +182,21 @@ def autenticar_usuario(nombre_usuario: str, clave: str):
             tipo,
             activo,
             intentos,
+            id_empleado, 
             esta_bloqueado
         ) = resultado
 
         if activo != 1:
             conn.rollback()
             print("[ERROR] La cuenta se encuentra desactivada.")
-            return False
+            return None
 
         #COMPROBAR BLOQUEO VIGENTE
         if esta_bloqueado == 1:
             conn.rollback()
             print("[ERROR] La cuenta está bloqueada temporalmente.")
             print("[INFO] Intente nuevamente después de 15 minutos.")
-            return False
+            return None
 
         #SI EL BLOQUEO ANTERIOR YA VENCIÓ. REINICIAR CONTADOR
         if intentos >= MAX_INTENTOS:
@@ -237,7 +239,13 @@ def autenticar_usuario(nombre_usuario: str, clave: str):
             print("[INFO] Inicio de sesión exitoso.")
             print(f"[INFO] Tipo de usuario: {tipo}")
 
-            return True
+            return {
+                "id_usuario": id_usuario,
+                "nombre_usuario": nombre,
+                "tipo_usuario": tipo,
+                "id_empleado": id_empleado,
+                "activo": bool(activo)
+            }
 
         #CONTRASEÑA INCORRECTA: INCREMENTAR CONTADOR
         nuevos_intentos = intentos + 1
@@ -248,16 +256,16 @@ def autenticar_usuario(nombre_usuario: str, clave: str):
                 UPDATE usuarios_sistema
                 SET intentos_fallidos = :1,
                     bloqueado_hasta =
-                        SYSTIMESTAMP + INTERVAL '15' MINUTE
-                WHERE id_usuario = :2
-            """, (MAX_INTENTOS, id_usuario))
+                        SYSTIMESTAMP + NUMTODSINTERVAL(:2, 'MINUTE')
+                WHERE id_usuario = :3
+            """, (MAX_INTENTOS, MINUTOS_BLOQUEO, id_usuario))
 
             conn.commit()
 
             print("[ERROR] Se alcanzó el límite de intentos.")
             print("[ERROR] Cuenta bloqueada durante 15 minutos.")
 
-            return False
+            return None
 
         cursor.execute("""
             UPDATE usuarios_sistema
@@ -272,14 +280,14 @@ def autenticar_usuario(nombre_usuario: str, clave: str):
         print("[ERROR] Usuario o contraseña incorrectos.")
         print(f"[WARNING] Intentos restantes: {restantes}")
 
-        return False
+        return None
 
     except Exception as e:
 
         conn.rollback()
         print(f"[ERROR] Error durante la autenticación: {e}")
 
-        return False
+        return None
 
     finally:
         cursor.close()
