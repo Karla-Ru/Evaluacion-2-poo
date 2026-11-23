@@ -1,7 +1,6 @@
 from datetime import datetime, date
 from proyecto.model.proyecto import (Proyecto, ProyectoRepositorio, obtener_proyecto, listar_proyectos)
 from proyecto.model.asignacion_proyecto import (AsignacionProyecto, eliminar_asignacion_bd, listar_asignaciones_proyecto)
-from proyecto.model.resgistro_tiempo import (RegistroTiempo, listar_registros_empleado, total_horas_proyecto, total_horas_empleado)
 
 def pausar():
     input("\nPresione ENTER para continuar: ")
@@ -61,6 +60,9 @@ def registrar_proyecto():
 
     fecha_termino = pedir_fecha("Fecha de Término (DD/MM/AAAA): ")
     if not fecha_termino:
+        return
+    if fecha_termino < fecha_inicio:
+        print("[WARNING] La fecha de término no puede ser anterior a la de inicio.")
         return
 
     print("\Registrando proyecto...")
@@ -211,10 +213,10 @@ def desasignar_empleado():
 
     eliminar_asignacion_bd(id_empleado, id_proyecto)
 
-    def ver_empleados_asignados():
-        print("\n===== EMPLEADOS ASIGNADOS =====")
+def ver_empleados_asignados():
+    print("\n===== EMPLEADOS ASIGNADOS =====")
 
-        id_proyecto = pedir_id("ID del proyecto: ")
+    id_proyecto = pedir_id("ID del proyecto: ")
     if not id_proyecto:
         return
 
@@ -226,70 +228,7 @@ def desasignar_empleado():
 
     for fila in asignaciones:
         print(f"Empleado {fila[1]} | Rol: {fila[2]} | Horas asignadas: {fila[3]} | "
-              f"Desde: {fila[4]:%d/%m/%Y}")
-
-
-# REGISTRO DE TIEMPO
-
-def resgistrar_horas():
-    print("\n===== REGISTRO DE TIEMPO =====")
-
-    id_empleado = pedir_id("ID del empleado: ")
-    if not id_empleado:
-        return
-
-    id_proyecto = pedir_id("ID del proyecto: ")
-    if not id_proyecto:
-        return
-
-    try:
-        horas = float(input("Horas trabajadas: ").strip())
-    except ValueError:
-        print("[WARNING] Ingrese un número de horas válido.")
-        return
-
-    descripcion = input("Descripción del trabajo: ").strip()
-
-    texto = input("Fecha (DD/MM/AAAA, ENTER para hoy): ").strip()
-    fecha = date.today()
-
-    if texto:
-        try:
-            fecha = datetime.strptime(texto, "%d/%m/%Y").date()
-        except ValueError:
-            print("[WARNING] Formato de fecha incorrecto.")
-            return
-
-    print("\nRegistrando horas...")
-    RegistroTiempo(id_empleado, id_proyecto, horas, descripcion, fecha)
-
-def ver_horas_empleado():
-    print("\n===== HORAS DE UN EMPLEADO =====")
-
-    id_empleado = pedir_id("ID del empleado: ")
-    if not id_empleado:
-        return
-
-    registros = listar_registros_empleado(id_empleado)
-
-    if not registros:
-        print("El empleado no tiene horas registradas.")
-        return
-
-    for fila in registros:
-        print(f"{fila[2]:%d/%m/%Y} | Proyecto {fila[1]} | {fila[3]} h | {fila[4] or ''}")
-
-    print(f"\nTotal: {total_horas_empleado(id_empleado)} horas")
-
-def ver_horas_proyecto():
-    print("\n===== TOTAL DE HORAS DE UN PROYECTO =====")
-
-    id_proyecto = pedir_id("ID del proyecto: ")
-    if not id_proyecto:
-        return
-
-    print(f"Total de horas registradas: {total_horas_proyecto(id_proyecto)}")
-
+                f"Desde: {fila[4]:%d/%m/%Y}")
 
 # MENÚ
 
@@ -350,18 +289,6 @@ def menu_proyectos():
 
         elif opcion == "8":
             ver_empleados_asignados()
-            pausar()
-
-        elif opcion == "9":
-            registrar_horas()
-            pausar()
-
-        elif opcion == "10":
-            ver_horas_empleado()
-            pausar()
-
-        elif opcion == "11":
-            ver_horas_proyecto()
             pausar()
 
         elif opcion == "0":
