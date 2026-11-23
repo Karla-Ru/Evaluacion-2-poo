@@ -292,3 +292,30 @@ def autenticar_usuario(nombre_usuario: str, clave: str):
     finally:
         cursor.close()
         conn.close()
+
+def existe_administrador() -> bool:
+    """ Retorna True si ya existe al menos un administrador registrado. """
+    conn = None
+    cursor = None
+
+    try:
+        conn = conectar_db()
+
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "select count(*) from usuarios_sistema where tipo_usuario = :1",
+                ("ADMINISTRADOR",)
+            )
+            return cursor.fetchone()[0] > 0
+
+        return True  # Sin conexión no se permite crear (opción más segura)
+    except Exception as e:
+        print(f"[ERROR] No se pudo verificar administradores | {e}")
+        return True  # Ante un error, tampoco se permite crear
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
