@@ -2,7 +2,6 @@ from datetime import date
 
 from proyecto.config.app_config import conectar_db, oracledb
 
-
 def validar_tabla_asignacion_proyecto():
     consulta_sql = """
         create table asignaciones_proyecto (
@@ -188,6 +187,42 @@ def listar_asignaciones_proyecto(id_proyecto: int) -> list:
         order by id_asignacion
     """, (id_proyecto,))
 
+
+def listar_asignaciones_empleado(id_empleado: int) -> list:
+    return consultar_bd("""
+        SELECT
+            ap.id_asignacion,
+            p.id_proyecto,
+            p.nombre,
+            p.descripcion,
+            p.estado,
+            ap.rol_en_proyecto,
+            ap.horas_asignadas,
+            ap.fecha_asignacion
+        FROM asignaciones_proyecto ap
+        INNER JOIN proyectos p
+            ON ap.id_proyecto = p.id_proyecto
+        WHERE ap.id_empleado = :1
+        ORDER BY ap.fecha_asignacion DESC
+    """, (id_empleado,))
+
+def listar_asignaciones_empleado(id_empleado: int) -> list:
+    return consultar_bd("""
+        SELECT
+            ap.id_asignacion,
+            p.id_proyecto,
+            p.nombre,
+            p.descripcion,
+            p.estado,
+            ap.rol_en_proyecto,
+            ap.horas_asignadas,
+            ap.fecha_asignacion
+        FROM asignaciones_proyecto ap
+        INNER JOIN proyectos p
+            ON ap.id_proyecto = p.id_proyecto
+        WHERE ap.id_empleado = :1
+        ORDER BY ap.fecha_asignacion DESC
+    """, (id_empleado,))
 
 class AsignacionProyectoRepositorio():
     def __init__(self):

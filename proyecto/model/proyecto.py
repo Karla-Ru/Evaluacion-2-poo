@@ -135,8 +135,8 @@ class ProyectoRepositorio():
     def modificarProyecto(self, nombre: str = None, descripcion: str = None, fechaInicio: date = None, fechaTermino: date = None):
         nuevo_nombre = nombre if nombre is not None else self.nombre
         nueva_descripcion = descripcion if descripcion is not None else self.descripcion
-        nueva_fecha_inicio = fecha_inicio if fecha_inicio is not None else self.fecha_inicio
-        nueva_fecha_termino = fecha_termino if fecha_termino is not None else self.fecha_termino
+        nueva_fecha_inicio = fechaInicio if fechaInicio is not None else self.fecha_inicio
+        nueva_fecha_termino = fechaTermino if fechaTermino is not None else self.fecha_termino
 
         if not isinstance(nuevo_nombre, str) or not nuevo_nombre.strip():
             print("Nombre no corresponde a tipo str o está vacío")

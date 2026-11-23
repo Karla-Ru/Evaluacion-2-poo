@@ -15,6 +15,9 @@ from proyecto.model.rol import verificar_permiso
 
 usuario_en_sesion = None #SESIÓN DEL USUARIO AUTENTICADO
 
+def obtener_usuario_en_sesion(): #CON ESTO DESDE MAIN.PY SE PUEDE CONSULTAR AL USUARIO AUTENTICADO
+    return usuario_en_sesion
+
 def tiene_permiso(nombre_permiso: str) -> bool:
 
     if usuario_en_sesion is None:
@@ -107,6 +110,10 @@ def registrar_usuario_empleado():
 def iniciar_sesion():
 
     global usuario_en_sesion
+
+    if usuario_en_sesion is not None:
+        print("[WARNING] Ya existe una sesión activa.")
+        return
 
     print("\n========== INICIO DE SESIÓN ==========")
 
