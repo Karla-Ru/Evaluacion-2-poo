@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from config.app_config import conectar_db, oracledb
-import bcrypt
+from proyecto.config.app_config import conectar_db, oracledb
+import bcrypt #LIB PARA PROTEGER CONTRASEÑAS
 
 #CREAR TABLA USUARIOS DEL SISTEMA
 
