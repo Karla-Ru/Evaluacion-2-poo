@@ -1,3 +1,4 @@
+from __future__ import annotations #SE AGREGA PARA EVITAR REDUNDANCIA AL INSERTAR DATOS DE EMPLEADO
 from proyecto.config.app_config import conectar_db, oracledb
 
 def validar_tabla_empleado():
