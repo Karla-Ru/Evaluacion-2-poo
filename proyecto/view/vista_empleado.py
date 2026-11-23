@@ -59,7 +59,6 @@ def registrar_empleado():
     print("\nRegistrando empleado...")
     insertar_datos_empleado(empleado)
 
-
 def actualizar_salario():
 
     print("\n========== ACTUALIZAR SALARIO ==========")
@@ -120,6 +119,26 @@ def cambiar_estado_empleado():
 
     repositorio.cambiar_estado(estado)
 
+def consultar_empleado():
+
+    print("\n========== CONSULTAR EMPLEADO ==========")
+
+    try:
+        id_empleado = int(input("ID del empleado: "))
+
+        if id_empleado <= 0:
+            print("[WARNING] El ID debe ser positivo.")
+            return
+
+    except ValueError:
+        print("[WARNING] Ingrese un ID válido.")
+        return
+
+    empleado = obtener_empleado_por_id(id_empleado)
+
+    if empleado:
+        print("\n" + empleado.mostrar_datos())
+
 def menu_empleados():
 
     while True:
@@ -131,6 +150,7 @@ def menu_empleados():
         print("1. Registrar empleado")
         print("2. Actualizar salario")
         print("3. Activar / Desactivar empleado")
+        print("4. Consultar empleado")
         print("0. Volver al menú principal")
         print("============================================")
 
@@ -148,9 +168,13 @@ def menu_empleados():
             cambiar_estado_empleado()
             pausar()
 
+        elif opcion == "4":
+            consultar_empleado()
+            pausar() #SE AGREGA LA OPCIÓN 4. SE PRUEBA Y FUNCIONA CORRECTAMENTE
+
         elif opcion == "0":
             break
 
         else:
             print("\n[WARNING] Opción no válida.")
-            pausar()
+            pausar() 

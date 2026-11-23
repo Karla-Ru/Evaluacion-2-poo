@@ -116,9 +116,6 @@ def insertar_datos_empleado(empleado: Empleado):
 
             valor_id = id_generado.getvalue()
 
-            print("[DEBUG] Valor recibido:", repr(valor_id))
-            print("[DEBUG] Tipo recibido:", type(valor_id))
-
             while isinstance(valor_id, list):
                 valor_id = valor_id[0]
             
