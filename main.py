@@ -1,4 +1,3 @@
-
 from datetime import date
 
 from proyecto.model.empleado import (
@@ -8,7 +7,6 @@ from proyecto.model.empleado import (
 )
 
 from proyecto.model.proyecto import (Proyecto, validar_tabla_proyecto)
-
 
 def main():
     validar_tabla_empleado()
