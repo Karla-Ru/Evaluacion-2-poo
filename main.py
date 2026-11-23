@@ -1,43 +1,73 @@
+from getpass import getpass
+
 from proyecto.model.empleado import (
     validar_tabla_empleado,
     obtener_empleado_por_id
 )
+
 from proyecto.model.departamento import validar_tabla_departamento
+
 from proyecto.model.proyecto import validar_tabla_proyecto
+
 from proyecto.model.asignacion_proyecto import (
     validar_tabla_asignacion_proyecto,
     listar_asignaciones_empleado
 )
+
 from proyecto.model.registro_tiempo import validar_tabla_registro_tiempo
-from proyecto.model.usuario_sistema import validar_tabla_usuario_sistema
+
+from proyecto.model.usuario_sistema import (
+    validar_tabla_usuario_sistema,
+    existe_administrador
+)
+
+from proyecto.model.administrador import (
+    Administrador,
+    insertar_administrador
+)
+
 from proyecto.model.rol import (
     validar_tabla_rol,
     validar_tabla_rol_permiso
 )
+
 from proyecto.model.permiso import validar_tabla_permiso
 
+
+# VISTAS
+
 from proyecto.view.vista_usuario import (
+    menu_usuarios,
     iniciar_sesion,
     cerrar_sesion,
     obtener_usuario_en_sesion,
-    tiene_permiso,
-    registrar_administrador,
-    registrar_usuario_empleado
+    tiene_permiso
 )
+
 from proyecto.view.vista_empleado import menu_empleados
+
 from proyecto.view.vista_departamento import menu_departamentos
+
 from proyecto.view.vista_proyecto import menu_proyectos
+
 from proyecto.view.vista_registro_tiempo import (
     menu_registro_tiempo,
     registrar_mis_horas,
     ver_mis_registros
 )
-from proyecto.view.vista_informes import menu_informes
-from proyecto.model.usuario_sistema import validar_tabla_usuario_sistema, existe_administrador
-from getpass import getpass
-from proyecto.model.administrador import Administrador, insertar_administrador
 
-#INICIALIZACIÓN DEL SISTEMA
+from proyecto.view.vista_informes import menu_informes
+
+from proyecto.view.vista_moneda import menu_monedas
+
+from proyecto.view.vista_clima import menu_clima
+
+# UTILIDADES
+
+def pausar():
+    input("\nPresione ENTER para continuar...")
+
+# INICIALIZACIÓN DEL SISTEMA
 
 def inicializar_sistema():
 
@@ -45,20 +75,30 @@ def inicializar_sistema():
     print("       INICIALIZANDO ECOTECH SOLUTIONS")
     print("============================================")
 
-    validar_tabla_empleado()
-    validar_tabla_departamento()
-    validar_tabla_proyecto()
-    validar_tabla_asignacion_proyecto()
-    validar_tabla_registro_tiempo()
+    validaciones = [
+        ("Empleados", validar_tabla_empleado),
+        ("Departamentos", validar_tabla_departamento),
+        ("Proyectos", validar_tabla_proyecto),
+        ("Asignaciones", validar_tabla_asignacion_proyecto),
+        ("Registros de tiempo", validar_tabla_registro_tiempo),
+        ("Roles", validar_tabla_rol),
+        ("Permisos", validar_tabla_permiso),
+        ("Relación rol-permiso", validar_tabla_rol_permiso),
+        ("Usuarios del sistema", validar_tabla_usuario_sistema)
+    ]
 
-    validar_tabla_rol()
-    validar_tabla_permiso()
-    validar_tabla_rol_permiso()
+    for nombre, funcion in validaciones:
+        try:
+            print(f"\n[INFO] Verificando {nombre}...")
+            funcion()
+        except Exception as e:
+            print(f"[ERROR] No se pudo verificar {nombre}: {e}")
+            raise
 
-    validar_tabla_usuario_sistema()
+    print("\n[OK] Inicialización finalizada.")
+    print("============================================")
 
-    print("\n[INFO] Inicialización del sistema finalizada.")
-
+# PRIMER ADMINISTRADOR
 
 def crear_primer_administrador():
 
@@ -91,89 +131,35 @@ def crear_primer_administrador():
 
     insertar_administrador(administrador)
 
-# MENÚ INICIAL
+# GESTIÓN DE USUARIOS
 
-def menu_inicial():
+def acceder_gestion_usuarios():
 
-    while True:
+    menu_usuarios()
 
-        hay_administrador = existe_administrador()
+    # Si el usuario inició sesión desde el menú de usuarios,
+    # recuperamos la sesión para dirigirlo a su menú correspondiente.
 
-        print("\n============================================")
-        print("          ECOTECH SOLUTIONS")
-        print("============================================")
-        print("1. Iniciar sesión")
+    usuario = obtener_usuario_en_sesion()
 
-        if not hay_administrador:
-            print("2. Crear primer administrador")
+    if usuario is not None:
+        gestionar_sesion(usuario)
 
-        print("0. Salir del sistema")
-        print("============================================")
-
-        opcion = input("Seleccione una opción: ").strip()
-
-        if opcion == "1":
-
-            iniciar_sesion()
-
-            usuario = obtener_usuario_en_sesion()
-
-            if usuario is not None:
-                gestionar_sesion(usuario)
-
-        elif opcion == "2" and not hay_administrador:
-
-            crear_primer_administrador()
-
-        elif opcion == "0":
-
-            print("\n[INFO] Cerrando EcoTech Solutions...")
-            break
-
-        else:
-
-            print("\n[WARNING] Opción no válida.")
-
-#GESTIÓN DE USUARIOS
-
-def menu_gestion_usuarios():
-
-    while True:
-
-        print("\n============================================")
-        print("             GESTIÓN DE USUARIOS")
-        print("============================================")
-        print("1. Registrar administrador")
-        print("2. Crear cuenta de empleado")
-        print("0. Volver al menú administrativo")
-        print("============================================")
-
-        opcion = input("Seleccione una opción: ").strip()
-
-        if opcion == "1":
-
-            registrar_administrador()
-
-        elif opcion == "2":
-
-            registrar_usuario_empleado()
-
-        elif opcion == "0":
-
-            break
-
-        else:
-
-            print("\n[WARNING] Opción no válida.")
-
-#MENÚ DEL ADMINISTRADOR
+# MENÚ DEL ADMINISTRADOR
 
 def menu_administrador():
 
     while True:
 
-        print("\n============================================")
-        print("          MENÚ DEL ADMINISTRADOR")
+        usuario = obtener_usuario_en_sesion()
+
+        if usuario is None:
+            print("\n[WARNING] La sesión ha finalizado.")
+            return
+
+        print("\n")
+        print("============================================")
+        print("          MENÚ ADMINISTRADOR")
         print("============================================")
         print("1. Gestión de empleados")
         print("2. Gestión de departamentos")
@@ -181,6 +167,7 @@ def menu_administrador():
         print("4. Registro de tiempo")
         print("5. Gestión de usuarios")
         print("6. Consultar informes")
+        print("7. Conversión de monedas")
         print("0. Cerrar sesión")
         print("============================================")
 
@@ -209,43 +196,63 @@ def menu_administrador():
         elif opcion == "5":
 
             if tiene_permiso("GESTIONAR_USUARIOS"):
-                menu_gestion_usuarios()
+                menu_usuarios()
 
         elif opcion == "6":
 
             if tiene_permiso("CONSULTAR_INFORMES"):
                 menu_informes()
 
-        elif opcion == "0":
+        elif opcion == "7":
 
-            print("\n[INFO] Regresando al menú inicial...")
-            break
+            if tiene_permiso("GESTIONAR_USUARIOS"):
+                menu_monedas()
+
+        elif opcion == "0":
+            cerrar_sesion()
+            return
 
         else:
-
             print("\n[WARNING] Opción no válida.")
+
+        pausar()
+
+# MENÚ DEL EMPLEADO
 
 def menu_empleado(usuario):
 
     id_empleado = usuario.get("id_empleado")
 
     if id_empleado is None:
-        print("[ERROR] Esta cuenta no está vinculada a un empleado.")
+        print("\n[ERROR] El usuario no tiene un empleado asociado.")
+        cerrar_sesion()  # Se cierra la sesión para no quedar en un ciclo infinito
         return
 
     while True:
-        print("\n========== MENÚ DEL EMPLEADO ==========")
+
+        if obtener_usuario_en_sesion() is None:
+            print("\n[WARNING] La sesión ha finalizado.")
+            return
+
+        print("\n")
+        print("============================================")
+        print("             MENÚ EMPLEADO")
+        print("============================================")
         print("1. Consultar mis datos")
         print("2. Ver mis proyectos asignados")
         print("3. Registrar mis horas")
         print("4. Consultar mis registros de tiempo")
+        print("5. Consultar clima")
+        print("6. Conversión de monedas")
         print("0. Cerrar sesión")
+        print("============================================")
 
-        opcion = input("\nSeleccione una opción: ").strip()
+        opcion = input("Seleccione una opción: ").strip()
 
         if opcion == "1":
 
             if tiene_permiso("CONSULTAR_DATOS_PROPIOS"):
+
                 empleado = obtener_empleado_por_id(id_empleado)
 
                 if empleado:
@@ -256,23 +263,18 @@ def menu_empleado(usuario):
         elif opcion == "2":
 
             if tiene_permiso("CONSULTAR_PROYECTOS_ASIGNADOS"):
+
                 asignaciones = listar_asignaciones_empleado(id_empleado)
 
-                if not asignaciones:
-                    print("\nNo tienes proyectos asignados.")
-                else:
+                if asignaciones:
                     print("\n========== MIS PROYECTOS ==========")
 
                     for fila in asignaciones:
                         print(
-                            f"\nProyecto: {fila[2]}"
-                            f"\nID: {fila[1]}"
-                            f"\nDescripción: {fila[3] or 'Sin descripción'}"
-                            f"\nEstado: {fila[4]}"
-                            f"\nRol: {fila[5]}"
-                            f"\nHoras asignadas: {fila[6]}"
-                            f"\nFecha de asignación: {fila[7]}"
+                            f"Proyecto: {fila}"
                         )
+                else:
+                    print("\nNo tienes proyectos asignados.")
 
         elif opcion == "3":
 
@@ -284,44 +286,113 @@ def menu_empleado(usuario):
             if tiene_permiso("CONSULTAR_DATOS_PROPIOS"):
                 ver_mis_registros(id_empleado)
 
+        elif opcion == "5":
+            menu_clima()
+
+        elif opcion == "6":
+            menu_monedas()
+
         elif opcion == "0":
-            print("\nCerrando sesión...")
-            break
+            cerrar_sesion()
+            return
 
         else:
-            print("[WARNING] Opción no válida.")
+            print("\n[WARNING] Opción no válida.")
 
-#GESTIÓN DE SESIÓN
+        pausar()
+
+# CONTROL DE SESIONES
 
 def gestionar_sesion(usuario):
 
-    rol = usuario["tipo_usuario"]
+    tipo_usuario = usuario.get("tipo_usuario")
 
-    if rol == "ADMINISTRADOR":
-
-        print("\n[INFO] Accediendo al menú de administrador.")
+    if tipo_usuario == "ADMINISTRADOR":
 
         menu_administrador()
 
-    elif rol == "EMPLEADO":
-
-        print("\n[INFO] Accediendo al menú de empleado.")
+    elif tipo_usuario == "EMPLEADO":
 
         menu_empleado(usuario)
 
     else:
 
-        print("[ERROR] El rol del usuario no es reconocido.")
+        print("\n[ERROR] El tipo de usuario no es válido.")
 
-    cerrar_sesion()
-#PUNTO DE ENTRADA
+        cerrar_sesion()
+
+# MENÚ PRINCIPAL
+
+def menu_principal():
+
+    while True:
+
+        usuario = obtener_usuario_en_sesion()
+
+        if usuario is not None:
+            gestionar_sesion(usuario)
+            continue
+
+        hay_administrador = existe_administrador()
+
+        print("\n")
+        print("============================================")
+        print("             ECOTECH SOLUTIONS")
+        print("============================================")
+        print("1. Gestión de usuarios / Iniciar sesión")
+
+        if not hay_administrador:
+            print("2. Crear primer administrador")
+
+        print("0. Salir del sistema")
+        print("============================================")
+
+        opcion = input("Seleccione una opción: ").strip()
+
+        if opcion == "1":
+
+            acceder_gestion_usuarios()
+
+        elif opcion == "2" and not hay_administrador:
+
+            crear_primer_administrador()
+            pausar()
+
+        elif opcion == "0":
+
+            print("\n[INFO] Cerrando ECOTECH SOLUTIONS...")
+            print("[INFO] Hasta pronto.")
+            break
+
+        else:
+
+            print("\n[WARNING] Opción no válida.")
+            pausar()
+
+# EJECUCIÓN PRINCIPAL
 
 def main():
 
-    inicializar_sistema()
+    try:
 
-    menu_inicial()
+        inicializar_sistema()
+
+        menu_principal()
+
+    except KeyboardInterrupt:
+
+        print("\n\n[INFO] Ejecución interrumpida por el usuario.")
+
+        if obtener_usuario_en_sesion() is not None:
+            cerrar_sesion()
+
+    except Exception as e:
+
+        print(f"\n[ERROR] Error al ejecutar el sistema: {e}")
+
+        if obtener_usuario_en_sesion() is not None:
+            cerrar_sesion()
+
 
 if __name__ == "__main__":
     main()
-
