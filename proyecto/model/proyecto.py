@@ -94,7 +94,7 @@ def obtener_proyecto(id_proyecto: int):
         select id_proyecto, nombre, descripcion, fecha_inicio, fecha_termino, estado 
         from proyectos
         where id_proyecto = :1
-    """, (id_proyecto))
+    """, (id_proyecto,))
     return filas[0] if filas else None
 
 # Retorna como lista de tuplas
@@ -106,6 +106,7 @@ def listar_proyectos() -> list:
     """, ())
 
 class ProyectoRepositorio():
+    estados_validos = ("Pendiente", "En curso", "Finalizado", "Cancelado")
     def __init__(self):
         pass
 
@@ -188,7 +189,6 @@ class ProyectoRepositorio():
             print("[ERROR] No se pudo cambiar el estado")
         return actualizado
 class Proyecto(ProyectoRepositorio):
-    estados_validos = ("Pendiente", "En curso", "Finalizado", "Cancelado")
 
     def __init__(self, nombre: str, descripcion: str, fechaInicio: date, fechaTermino: date, estado: str = "Pendiente"):
         self.id_proyecto   = None 
