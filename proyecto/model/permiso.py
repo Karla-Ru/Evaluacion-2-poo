@@ -1,4 +1,3 @@
-
 from config.app_config import conectar_db, oracledb
 
 #CREAR TABLA PERMISOS
