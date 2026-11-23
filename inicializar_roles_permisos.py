@@ -13,7 +13,7 @@ def inicializar_roles_permisos():
     try:
         cursor = conn.cursor()
 
-        # 1. CREAR ROLES SI NO EXISTEN
+        #CREAR ROLES SI NO EXISTEN
 
         roles = [
             ("ADMINISTRADOR", "Acceso a las funciones administrativas."),
@@ -34,7 +34,7 @@ def inicializar_roles_permisos():
                     VALUES (origen.nombre, origen.descripcion)
             """, (nombre, descripcion))
 
-        # 2. CREAR PERMISOS SI NO EXISTEN
+        #CREAR PERMISOS SI NO EXISTEN
 
         permisos = [
             ("GESTIONAR_EMPLEADOS", "Administrar empleados."),
@@ -65,7 +65,7 @@ def inicializar_roles_permisos():
                     VALUES (origen.nombre, origen.descripcion)
             """, (nombre, descripcion))
 
-        # 3. OBTENER ID DEL ROL ADMINISTRADOR
+        #OBTENER ID DEL ROL ADMINISTRADOR
 
         cursor.execute("""
             SELECT id_rol
@@ -73,9 +73,14 @@ def inicializar_roles_permisos():
             WHERE nombre = 'ADMINISTRADOR'
         """)
 
-        id_admin = cursor.fetchone()[0]
+        resultado = cursor.fetchone()
+        
+        if resultado is None:
+            raise Exception("No se encontró el rol ADMINISTRADOR.")
+        
+        id_admin = resultado[0]
 
-        # 4. ASIGNAR LOS SEIS PERMISOS AL ADMINISTRADOR
+        #ASIGNAR LOS SEIS PERMISOS AL ADMINISTRADOR
 
         for nombre, descripcion in permisos:
 
@@ -85,7 +90,12 @@ def inicializar_roles_permisos():
                 WHERE nombre = :1
             """, (nombre,))
 
-            id_permiso = cursor.fetchone()[0]
+            resultado = cursor.fetchone()
+
+            if resultado is None:
+                raise Exception(f"No se encontró el permiso {nombre}.")
+            
+            id_permiso = resultado[0]
 
             cursor.execute("""
                 MERGE INTO rol_permiso destino
@@ -110,7 +120,12 @@ def inicializar_roles_permisos():
             WHERE nombre = 'EMPLEADO'
         """)
 
-        id_rol_empleado = cursor.fetchone()[0]
+        resultado = cursor.fetchone()
+
+        if resultado is None:
+            raise Exception("No se encontró el rol EMPLEADO.")
+        
+        id_rol_empleado = resultado[0]
 
         #ASIGNAR PERMISOS AL EMPLEADO
 
@@ -122,7 +137,12 @@ def inicializar_roles_permisos():
                 WHERE nombre = :1
             """, (nombre,))
 
-            id_permiso = cursor.fetchone()[0]
+            resultado = cursor.fetchone()
+            
+            if resultado is None:
+                raise Exception(f"No se encontró el permiso {nombre}.")
+            
+            id_permiso = resultado[0]
 
             cursor.execute("""
                 MERGE INTO rol_permiso destino
@@ -139,7 +159,7 @@ def inicializar_roles_permisos():
                     VALUES (origen.id_rol, origen.id_permiso)
             """, (id_rol_empleado, id_permiso))
 
-        # CONFIRMAR CAMBIOS
+        #CONFIRMAR CAMBIOS
 
         conn.commit()
 

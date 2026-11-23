@@ -1,4 +1,3 @@
-
 from proyecto.model.departamento import (
     Departamento,
     DepartamentoRepositorio,
