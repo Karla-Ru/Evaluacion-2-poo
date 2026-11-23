@@ -1,4 +1,3 @@
-
 from abc import ABC, abstractmethod
 
 from proyecto.config.app_config import conectar_db
