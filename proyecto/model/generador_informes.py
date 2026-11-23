@@ -130,9 +130,9 @@ class GeneradorInformes:
                 p.fecha_inicio,
                 p.fecha_termino,
                 p.estado,
-                COUNT(pe.id_empleado)
+                COUNT(DISTINCT pe.id_empleado)
             FROM proyectos p
-            LEFT JOIN proyecto_empleado pe
+            LEFT JOIN asignaciones_proyecto pe
                 ON p.id_proyecto = pe.id_proyecto
             GROUP BY
                 p.id_proyecto,
@@ -176,7 +176,7 @@ class GeneradorInformes:
                 e.id_empleado,
                 e.nombre,
                 e.correo_electronico
-            FROM proyecto_empleado pe
+            FROM asignaciones_proyecto pe
             INNER JOIN proyectos p
                 ON pe.id_proyecto = p.id_proyecto
             INNER JOIN empleados e

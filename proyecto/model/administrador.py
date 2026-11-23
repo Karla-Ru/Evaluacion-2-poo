@@ -93,6 +93,6 @@ class Administrador(UsuarioSistema):
     def mostrar_datos(self):
 
         return (
-            super().mostrar_datos()
+            super().mostrar_datos() #SIRVE PARA REUTILIZAR LA CLASE PADRE, AL ADMI HEREDA ID USUARIO, NOMBRE, CLAVE, ACTIVO, VERIFICAR, MOSTAR FATOS
             + "\nPermisos: " + ", ".join(self.permisos)
         )
