@@ -1,6 +1,4 @@
-
 from proyecto.config.app_config import conectar_db
-
 
 class GeneradorInformes:
 

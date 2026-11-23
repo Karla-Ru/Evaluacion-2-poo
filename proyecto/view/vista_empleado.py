@@ -2,13 +2,12 @@ from datetime import datetime
 from proyecto.model.empleado import (
     Empleado,
     EmpleadoRepositorio,
-    insertar_datos_empleado
+    insertar_datos_empleado,
+    obtener_empleado_por_id #SE AGREGA ESTO
 )
-
 
 def pausar():
     input("\nPresione ENTER para continuar...")
-
 
 def registrar_empleado():
 
@@ -87,7 +86,6 @@ def actualizar_salario():
 
     repositorio.actualizar_salario(nuevo_salario)
 
-
 def cambiar_estado_empleado():
 
     print("\n========== CAMBIAR ESTADO DEL EMPLEADO ==========")
@@ -121,7 +119,6 @@ def cambiar_estado_empleado():
     repositorio.id_empleado = id_empleado
 
     repositorio.cambiar_estado(estado)
-
 
 def menu_empleados():
 
