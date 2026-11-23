@@ -71,6 +71,12 @@ def insertar_datos_registro(registro):
     except oracledb.IntegrityError as e:
         if conn:
             conn.rollback()
+
+        print(f"[ERROR] Error de integridad | {e}")
+    except Exception as e:
+        if conn:
+            conn.rollback()
+
         print(f"Registro de tiempo no guardado | {e}")
     finally:
         if cursor:
@@ -78,6 +84,23 @@ def insertar_datos_registro(registro):
 
         if conn:
             conn.close()
+
+def obtener_registro(id_registro: int):
+    filas = consultar_bd("""
+        select id_registro, id_empleado, id_proyecto, fecha, horas_trabajadas, descripcion
+        from registros_tiempo
+        where id_registro = :1
+    """, (id_registro,))
+    return filas[0] if filas else None
+
+def listar_registros_proyecto(id_proyecto: int) -> list:
+    return consultar_bd("""
+        select id_registro, id_empleado, fecha, horas_trabajadas, descripcion
+        from registros_tiempo
+        where id_proyecto = :1
+        order by fecha, id_registro
+    """, (id_proyecto,))
+
 
 def listar_registros_empleado(id_empleado: int) -> list:
     return consultar_bd( """
